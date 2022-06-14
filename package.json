@@ -1,0 +1,19 @@
+{
+	"name": "luapacker",
+	"version": "1.0.0",
+	"description": "A lua bundler that packs all lua files provided into one file.",
+	"main": "./dist/index.js",
+	"bin": {
+		"luapacker": "./dist/index.js"
+	},
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "parritz",
+	"license": "MIT",
+	"dependencies": {
+		"chalk": "^4.1.2",
+		"fs": "^0.0.1-security",
+		"path": "^0.12.7"
+	}
+}
