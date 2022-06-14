@@ -2,16 +2,7 @@
 import fs from "fs";
 import path from "path";
 import util from "./util";
-
-// To-do: Move these into a seperate file.
-type Command = {
-	name: string;
-	description: string;
-	run(): Promise<void> | void;
-}
-type Commands = {
-	[key: string]: Command;
-}
+import { Command, Commands } from "./types";
 
 const commands: Commands = {};
 const commandFolder: string = path.join(__dirname, "/commands");
