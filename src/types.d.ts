@@ -7,3 +7,7 @@ export type Command = {
 export type Commands = {
 	[key: string]: Command;
 }
+
+export type Module = {
+	[key: string]: string;
+}
