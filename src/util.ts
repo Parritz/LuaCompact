@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import chalk from "chalk";
 import readline from "readline"
 import util from "util";
@@ -27,5 +29,22 @@ export default {
 
 	async prompt(question: string): Promise<string> {
 		return await promptUser(question) as unknown as string;
+	},
+
+	async retrieveFiles(directory: string, extensions: string[]): Promise<string[]> {
+		const files: string[] = [];
+		fs.readdirSync(directory).forEach(async (file) => {
+			const extension = path.extname(file);
+			if (extensions.includes(extension)) {
+				files.push(path.resolve(path.join(directory, file)));
+			}
+	
+			// Walk through subdirectories and add any files matching the wanted extensions to the list.
+			if (fs.lstatSync(path.join(directory, file)).isDirectory()) {
+				const filesWithinDir = await this.retrieveFiles(path.join(directory, file), extensions);
+				files.push(...filesWithinDir);
+			}
+		});
+		return files;
 	}
 }
