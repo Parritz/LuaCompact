@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 import fs from "fs";
 import path from "path";
-import util from "./util";
+import util from "./modules/util";
 import { Command, Commands } from "./types";
 
 const commands: Commands = {};

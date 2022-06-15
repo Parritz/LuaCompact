@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path"
-import util from "../util";
+import util from "../modules/util";
 
 const defaultJSON = {
 	main: "index.lua",
