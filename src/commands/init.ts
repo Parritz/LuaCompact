@@ -22,9 +22,7 @@ export default {
 			// If not, it's safe to assume they want to use the default values.
 			if (entryDirInput) {
 				let entryDir = entryDirInput;
-				if (!entryDirInput.endsWith(".lua") || !entryDirInput.endsWith(".luau")) {
-					entryDir += ".lua";
-				}
+				if (!entryDirInput.endsWith(".lua") && !entryDirInput.endsWith(".luau")) entryDir += ".lua";
 				defaultJSON.main = entryDir;
 			}
 			if (rootDir) defaultJSON.rootDir = rootDir;
