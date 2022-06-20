@@ -8,6 +8,10 @@ export type Commands = {
 	[key: string]: Command;
 }
 
-export type Module = {
+export type LoadedFiles = {
 	[key: string]: string;
+}
+
+export type LoadedDirectories = {
+	[key: string]: string[];
 }
