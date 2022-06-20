@@ -27,6 +27,14 @@ export default {
 		console.log(chalk.red("[ERROR]: ") + message);
 	},
 
+	stringToByteArray(String: string) { // Thanks StackOverflow!
+		const result = new Uint8Array(String.length);
+		for (let i = 0; i < String.length; i++){
+			result[i] = String.charCodeAt(i)
+		}
+		return result;
+	},
+
 	async prompt(question: string): Promise<string> {
 		return await promptUser(question) as unknown as string;
 	},
@@ -46,5 +54,5 @@ export default {
 			}
 		});
 		return files;
-	}
+	},
 }
