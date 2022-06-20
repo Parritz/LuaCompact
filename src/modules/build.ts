@@ -5,10 +5,11 @@ import { Module } from "../types";
 
 const functions = fs.readFileSync(path.join(__dirname, "../functions.lua"), "utf8");
 
-export async function getModules(directory: string): Promise<Module> {
+export async function getModules(directory: string): Promise<{ modules: Module; failedBuilds: string[]}> {
 	const luaFileDirectories = await util.retrieveFiles(directory, [".lua", ".luau"]);
 	const modules: Module = {}
 
+	let failedBuilds: string[] = [];
 	for (const fileDir of luaFileDirectories) {
 		const file = fs.readFileSync(fileDir, "utf8");
 		const firstLine = file.split("\n")[0].replace(/\s/g, ""); // Remove all whitespace and convert the first line to lowercase.
@@ -16,11 +17,15 @@ export async function getModules(directory: string): Promise<Module> {
 			const _NAME = firstLine.split("=")[1].replace(/"|'/g, ""); // Remove all quotes to get the name from the first line.
 			modules[_NAME] = file.split("\n").slice(1).join("\n"); // Remove the first line and join the rest of the file into a string.
 		} else {
-			util.error("Unable to find _NAME at the start of file: " + fileDir);
-			util.warn(path.basename(fileDir) + " will not be included in the build.");
+			util.error("Unable to find _NAME at the start of file: " + fileDir + "\nThis file will not be included in the final build.");
+			failedBuilds.push(path.basename(fileDir));
 		}
 	}
-	return modules;
+
+	return {
+		modules, 
+		failedBuilds
+	}
 }
 
 export async function build() {
@@ -49,7 +54,7 @@ export async function build() {
 	if (!fs.existsSync(buildDir)) fs.mkdirSync(buildDir); // Create a build directory if one doesn't already exist.
 	if (!fs.existsSync(buildFileDir)) fs.writeFileSync(buildFileDir, ""); // Create a build file if one doesn't already exist.
 
-	const modules = await getModules(rootDir);
+	const { modules, failedBuilds } = await getModules(rootDir);
 	let finalBuild = "local luapackerModules = {}\n";
 	for (const module in modules) {
 		const originalModuleContents = modules[module];
@@ -63,4 +68,9 @@ export async function build() {
 
 	finalBuild += `\n${functions}\n\n${fs.readFileSync(entryDir, "utf8")}`;
 	fs.writeFileSync(buildFileDir, finalBuild);
+
+	if (failedBuilds.length > 0) {
+		return util.warn("Completed build. Failed to build the following files: " + failedBuilds.join(", "));
+	}
+	return util.success("Completed build with 0 issues.");
 }
