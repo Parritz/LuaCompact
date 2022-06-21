@@ -1,7 +1,7 @@
 export type Command = {
 	name: string;
 	description: string;
-	run(): Promise<void> | void;
+	run(options: string[]): Promise<void> | void;
 }
 
 export type Commands = {
