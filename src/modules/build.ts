@@ -13,23 +13,34 @@ const buildDir = path.join(directory, "/build");
 const buildFileDir = path.join(buildDir, "/build.lua");
 const configDir = path.join(directory, "/luapacker.json");
 
+// Checks if the directory provided is excluded from building.
+function checkExcluded(dir: string, excludedDirs: string[]): boolean {
+	if (!dir.endsWith(".lua") && !dir.endsWith(".luau")) {
+		if (fs.existsSync(dir + ".lua")) {
+			dir += ".lua";
+		} else if (fs.existsSync(dir + ".luau")) {
+			dir += ".luau";
+		}
+	}
+
+	let excluded = false;
+	for (const excludedDir of excludedDirs) {
+		if (dir.includes(excludedDir)) {
+			excluded = true;
+			break;
+		}
+	}
+	return excluded;
+}
+
 // Parses Luapacker reserved functions.
 async function parseFunctions(excludedDirs: string[]): Promise<LoadedDirectories> {
 	const luaFileDirs = await util.retrieveFiles(directory, [".lua", ".luau"]); // Get all files in the working directory that have a .lua or .luau extension.
 	const loadedDirs: LoadedDirectories = {load: [], import: []}; // Create an object to store the loaded directories.
 
-	const files: string[] = [];
 	for (const fileDir of luaFileDirs) {
 		if (fileDir === buildFileDir) continue; // Skip the build file.
-		// Prevent excluded files from being parsed.
-		let excludedLoad = false;
-		for (const excludedDir of excludedDirs) {
-			if (fileDir.startsWith(excludedDir) || fileDir.startsWith(excludedDir + ".lua") || fileDir.startsWith(excludedDir + ".luau")) {
-				excludedLoad = true;
-				break;
-			}
-		}
-		if (excludedLoad) continue;
+		if (checkExcluded(fileDir, excludedDirs)) continue; // Skip excluded files.
 		
 		const file = fs.readFileSync(fileDir, "utf8");
 		const lines = file.split("\n");
@@ -42,17 +53,7 @@ async function parseFunctions(excludedDirs: string[]): Promise<LoadedDirectories
 					if (splitRerservedFunc[0] != "") continue; // Ensure it's actually a reserved Luapacker function and not a function ending with the same keyword.
 					
 					const moduleDir = splitRerservedFunc[1].split(")")[0].replace(/"|'/g, ""); // Get the provided string from the function call.
-					const absoluteModuleDir = path.join(directory, `/${moduleDir}`); // Get the absolute path of the string provided from the function call.
-
-					// Prevent excluded files from being loaded/imported.
-					let excludedLoad = false;
-					for (const excludedDir of excludedDirs) {
-						if (absoluteModuleDir.startsWith(excludedDir) || absoluteModuleDir.startsWith(excludedDir + ".lua") || absoluteModuleDir.startsWith(excludedDir + ".luau")) {
-							excludedLoad = true;
-							break;
-						}
-					}
-					if (excludedLoad) continue;
+					if (checkExcluded(path.join(directory, `/${moduleDir}`), excludedDirs)) continue; // Don't include excluded files.
 					loadedDirs[reservedFunction].push(moduleDir);
 				}
 			}
@@ -125,13 +126,15 @@ function getImports(relativeImportDirs: string[]): { [key: string]: LoadedFiles;
 }
 
 export async function build() {
+	const startTime = Date.now(); // Get the start time for later use
+
 	// Check if a project exists in this directory and if not, exit.
 	if (!fs.existsSync(configDir)) {
 		util.error("No luapacker project found. Please run \"luapacker init\" to create a new project.");
 		return;
 	}
 
-	// Parse config and get the entry directory.
+	// Parse config and get the entry, prelude, and excluded directories.
 	const config = JSON.parse(fs.readFileSync(configDir, "utf8"));
 	const entryDir = path.join(directory, `/${config.main}`);
 	const preludeDir = config.prelude;
@@ -148,7 +151,7 @@ export async function build() {
 	const { modules, failedBuilds } = getModules(loadedDirs.load);
 	const { imports, JSONImports } = getImports(loadedDirs.import);
 
-	// Build the project.
+	// Initialize the final build with some default objects.
 	let finalBuild = "local luapackerImports = {}\nlocal luapackerModules = {}\n\n";
 
 	// Build the non-JSON imports.
@@ -207,7 +210,6 @@ export async function build() {
 
 	// Build the modules.
 	for (const module in modules) {
-		console.log(module);
 		const originalModuleContents = modules[module];
 		let formattedModuleContents = "";
 		for (let line of originalModuleContents.split("\n")) {
@@ -220,8 +222,9 @@ export async function build() {
 	finalBuild += `${functions}\n\n${fs.readFileSync(entryDir, "utf8")}`;
 	fs.writeFileSync(buildFileDir, finalBuild);
 
+	const timeTaken = (Date.now() - startTime) / 1000 // Get the amount of time taken for the build.
 	if (failedBuilds.length > 0) {
-		return util.warn("Completed build. Failed to build the following files: " + failedBuilds.join(", "));
+		return util.warn(`Completed build in ${timeTaken} seconds. Failed to build the following files: ${failedBuilds.join(", ")}`);
 	}
-	return util.success("Completed build with 0 issues.");
+	return util.success(`Completed build in ${timeTaken} seconds with 0 issues.`);
 }
