@@ -29,7 +29,7 @@ async function parseFunctions(excludedDirs: string[]): Promise<LoadedDirectories
 				break;
 			}
 		}
-		if (excludedLoad) continue
+		if (excludedLoad) continue;
 		
 		const file = fs.readFileSync(fileDir, "utf8");
 		const lines = file.split("\n");
@@ -52,13 +52,12 @@ async function parseFunctions(excludedDirs: string[]): Promise<LoadedDirectories
 							break;
 						}
 					}
-					if (excludedLoad) continue
+					if (excludedLoad) continue;
 					loadedDirs[reservedFunction].push(moduleDir);
 				}
 			}
 		}
 	}
-	console.log(loadedDirs)
 	return loadedDirs;
 }
 
@@ -82,7 +81,7 @@ function getModules(relativeLoadDirs: string[]): { modules: LoadedFiles; failedB
 			const module = fs.readFileSync(loadDir, "utf8");
 			modules[relativeLoadDir] = module;
 		} catch {
-			util.error(`Unable to find module ${path.resolve(loadDir)}.\nThis file will not be included in the build.`);
+			util.error(`Unable to find module: ${path.resolve(loadDir)}.\nThis file will not be included in the build.`);
 			failedBuilds.push(relativeLoadDir);
 		}	
 	}
@@ -103,7 +102,7 @@ function getImports(relativeImportDirs: string[]): { [key: string]: LoadedFiles;
 		try {
 			importedFile = fs.readFileSync(importDir, "utf8");
 		} catch {
-			util.error(`Unable to find import ${path.resolve(importDir)}.\nThis file will not be included in the build.`);
+			util.error(`Unable to find import: ${path.resolve(importDir)}.\nThis file will not be included in the build.`);
 			continue;
 		}
 
@@ -113,7 +112,7 @@ function getImports(relativeImportDirs: string[]): { [key: string]: LoadedFiles;
 				continue;
 			}
 		} catch {
-			util.error(`Invalid JSON provided in ${path.resolve(importDir)}.\nThis file will not be included in the build.`);
+			util.error(`Invalid JSON provided in import: ${path.resolve(importDir)}.\nThis file will not be included in the build.`);
 			continue;
 		}
 		imports[relativeImportDir] = importedFile;
@@ -135,6 +134,7 @@ export async function build() {
 	// Parse config and get the entry directory.
 	const config = JSON.parse(fs.readFileSync(configDir, "utf8"));
 	const entryDir = path.join(directory, `/${config.main}`);
+	const preludeDir = config.prelude;
 	const excludeDirs: string[] = [];
 	if (config.exclude) {
 		for (const excludeDir of config.exclude) {
@@ -151,21 +151,12 @@ export async function build() {
 	// Build the project.
 	let finalBuild = "local luapackerImports = {}\nlocal luapackerModules = {}\n\n";
 
-	const toBytes = (string: string) => {
-		const buffer = Buffer.from(string, 'utf8');
-		const result = Array(buffer.length);
-		for (var i = 0; i < buffer.length; i++) {
-			result[i] = buffer[i];
-		}
-		return result;
-	};
-
 	// Build the non-JSON imports.
 	for (const importedFile in imports) {
 		const importedFileContents: string = imports[importedFile];
 
 		// Convert the imported file contents string to bytes
-		const byteEncodedContents: string = toBytes(importedFileContents).join("\\");
+		const byteEncodedContents: string = util.stringToByteArray(importedFileContents).join("\\");
 		finalBuild += `luapackerImports["${importedFile}"] = function()\n\treturn "\\${byteEncodedContents}"\nend\n`;
 		
 		// If the last imported file is being iterated, then add a line break.
@@ -190,8 +181,33 @@ export async function build() {
 		}
 	}
 
+	// If a prelude directory is provided, then include that in the final build.
+	if (preludeDir) {
+		// Add an extension if one isn't already provided.
+		let preludeAbsoluteDir = path.join(directory, `/${preludeDir}`);
+		if (!preludeAbsoluteDir.endsWith(".lua") || preludeAbsoluteDir.endsWith(".luau")) {
+			if (fs.existsSync(preludeAbsoluteDir + ".lua")) {
+				preludeAbsoluteDir += ".lua";
+			} else if (fs.existsSync(preludeAbsoluteDir + ".luau")) {
+				preludeAbsoluteDir += ".luau";
+			}
+		}
+		
+		try {
+			const preludeLines = fs.readFileSync(preludeAbsoluteDir, "utf8").split("\n");
+			for (const line of preludeLines) {
+				finalBuild += line + "\n";
+				if (preludeLines[preludeLines.length - 1] === line) finalBuild += "\n"; // If it's the last line, then add a line break.
+			}
+		} catch {
+			util.error(`Invalid prelude directory provided: ${path.resolve(preludeAbsoluteDir)}.\nThis file will not be included in the build.`);
+			return;
+		}
+	}
+
 	// Build the modules.
 	for (const module in modules) {
+		console.log(module);
 		const originalModuleContents = modules[module];
 		let formattedModuleContents = "";
 		for (let line of originalModuleContents.split("\n")) {
@@ -201,7 +217,7 @@ export async function build() {
 		finalBuild += `luapackerModules["${module}"] = function()\n${formattedModuleContents}\nend\n`;
 	}
 
-	finalBuild += `\n${functions}\n\n${fs.readFileSync(entryDir, "utf8")}`;
+	finalBuild += `${functions}\n\n${fs.readFileSync(entryDir, "utf8")}`;
 	fs.writeFileSync(buildFileDir, finalBuild);
 
 	if (failedBuilds.length > 0) {
