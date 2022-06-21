@@ -68,6 +68,6 @@ print(defaultConfig.Enabled)
 config.json Example:
 ```json
 {
-    "Enabled" = true
+    "Enabled": true
 }
 ```
