@@ -39,11 +39,24 @@ export default {
 		return await promptUser(question) as unknown as string;
 	},
 
-	async retrieveFiles(directory: string, extensions: string[]): Promise<string[]> {
+	async checkExtension(directory: string, firstExtension: string, secondExtension: string): Promise<string> {
+		if (!directory.endsWith(firstExtension) && !directory.endsWith(secondExtension)) {
+			if (fs.existsSync(directory + firstExtension)) {
+				directory += firstExtension;
+			} else if (fs.existsSync(directory + secondExtension)) {
+				directory += secondExtension;
+			}
+		}
+		return directory;
+	},
+
+	async retrieveFiles(directory: string, extensions?: string[]): Promise<string[]> {
 		const files: string[] = [];
 		fs.readdirSync(directory).forEach(async (file) => {
+			const isDirectory = fs.lstatSync(path.join(directory, file)).isDirectory()
 			const extension = path.extname(file);
-			if (extensions.includes(extension)) {
+			if (!extensions && !isDirectory) files.push(path.resolve(path.join(directory, file)));
+			if (extensions && extensions.includes(extension)) {
 				files.push(path.resolve(path.join(directory, file)));
 			}
 	
