@@ -13,5 +13,5 @@ export type LoadedFiles = {
 }
 
 export type LoadedDirectories = {
-	[key: string]: string[];
+	[key: string]: LoadedFiles;
 }

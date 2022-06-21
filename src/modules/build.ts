@@ -29,7 +29,7 @@ async function checkExcluded(dir: string, excludedDirs: string[]): Promise<boole
 // Parses Luapacker reserved functions.
 async function parseFunctions(excludedDirs: string[]): Promise<LoadedDirectories> {
 	const luaFileDirs = await util.retrieveFiles(directory, [".lua", ".luau"]); // Get all files in the working directory that have a .lua or .luau extension.
-	const loadedDirs: LoadedDirectories = {load: [], import: []}; // Create an object to store the loaded directories.
+	const loadedDirs: LoadedDirectories = {load: {}, import: {}}; // Create an object to store the loaded directories.
 
 	for (const fileDir of luaFileDirs) {
 		if (fileDir === buildFileDir) continue; // Skip the build file.
@@ -48,7 +48,7 @@ async function parseFunctions(excludedDirs: string[]): Promise<LoadedDirectories
 					
 					const moduleDir = splitRerservedFunc[1].split(")")[0].replace(/"|'/g, ""); // Get the provided string from the function call.
 					if (await checkExcluded(path.join(directory, `/${moduleDir}`), excludedDirs)) continue; // Don't include excluded files.
-					loadedDirs[reservedFunction].push(moduleDir);
+					loadedDirs[reservedFunction][moduleDir] = path.dirname(fileDir);
 				}
 			}
 		}
@@ -57,13 +57,13 @@ async function parseFunctions(excludedDirs: string[]): Promise<LoadedDirectories
 }
 
 // Handle load function calls.
-async function getModules(relativeLoadDirs: string[]): Promise<{ modules: LoadedFiles; failedBuilds: string[]; }> {
+async function getModules(relativeLoadDirs: LoadedFiles): Promise<{ modules: LoadedFiles; failedBuilds: string[]; }> {
 	const modules: LoadedFiles = {};
 	const failedBuilds: string[] = [];
-	for (let relativeLoadDir of relativeLoadDirs) {
+	for (let relativeLoadDir of Object.keys(relativeLoadDirs)) {
 		// If the module provided doesn't have a .lua or .luau extension, add it.
 		// In this case, .lua takes priority over .luau. If somebody has two files with the same name but different extensions, then they will have to provide an extension.
-		const loadDir = await util.checkExtension(path.join(directory, `/${relativeLoadDir}`), ".lua", ".luau");
+		const loadDir = await util.checkExtension(path.resolve(relativeLoadDirs[relativeLoadDir], relativeLoadDir), ".lua", ".luau");
 		try {
 			const module = fs.readFileSync(loadDir, "utf8");
 			modules[relativeLoadDir] = module;
@@ -80,11 +80,11 @@ async function getModules(relativeLoadDirs: string[]): Promise<{ modules: Loaded
 }
 
 // Handle import function calls.
-async function getImports(relativeImportDirs: string[]): Promise<{ [key: string]: LoadedFiles; }> {
+async function getImports(relativeImportDirs: LoadedFiles): Promise<{ [key: string]: LoadedFiles; }> {
 	const imports: LoadedFiles = {};
 	const JSONImports: LoadedFiles = {};
-	for (const relativeImportDir of relativeImportDirs) {
-		const importDir = path.join(directory, `/${relativeImportDir}`);
+	for (const relativeImportDir of Object.keys(relativeImportDirs)) {
+		const importDir = path.resolve(relativeImportDirs[relativeImportDir], relativeImportDir)
 		let importedFile: string = "";
 		try {
 			importedFile = fs.readFileSync(importDir, "utf8");
@@ -137,7 +137,7 @@ export async function build() {
 	const { imports, JSONImports } = await getImports(loadedDirs.import);
 
 	// Initialize the final build with some default objects.
-	let finalBuild = "local luapackerImports = {}\nlocal luapackerModules = {}\n\n";
+	let finalBuild = `local luapackerImports = {}\nlocal luapackerModules = {}\n\n${functions}\n\n`;
 
 	// Build the non-JSON imports.
 	for (const importedFile in imports) {
@@ -197,7 +197,7 @@ export async function build() {
 		finalBuild += `luapackerModules["${module}"] = function()\n${formattedModuleContents}\nend\n`;
 	}
 
-	finalBuild += `${functions}\n\n${fs.readFileSync(entryDir, "utf8")}`;
+	finalBuild += `\n${fs.readFileSync(entryDir, "utf8")}`;
 	fs.writeFileSync(buildFileDir, finalBuild);
 
 	const timeTaken = (Date.now() - startTime) / 1000 // Get the amount of time taken for the build.
