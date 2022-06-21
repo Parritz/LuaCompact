@@ -14,15 +14,8 @@ const buildFileDir = path.join(buildDir, "/build.lua");
 const configDir = path.join(directory, "/luapacker.json");
 
 // Checks if the directory provided is excluded from building.
-function checkExcluded(dir: string, excludedDirs: string[]): boolean {
-	if (!dir.endsWith(".lua") && !dir.endsWith(".luau")) {
-		if (fs.existsSync(dir + ".lua")) {
-			dir += ".lua";
-		} else if (fs.existsSync(dir + ".luau")) {
-			dir += ".luau";
-		}
-	}
-
+async function checkExcluded(dir: string, excludedDirs: string[]): Promise<boolean> {
+	dir = await util.checkExtension(dir, ".lua", ".luau");
 	let excluded = false;
 	for (const excludedDir of excludedDirs) {
 		if (dir.includes(excludedDir)) {
@@ -40,12 +33,13 @@ async function parseFunctions(excludedDirs: string[]): Promise<LoadedDirectories
 
 	for (const fileDir of luaFileDirs) {
 		if (fileDir === buildFileDir) continue; // Skip the build file.
-		if (checkExcluded(fileDir, excludedDirs)) continue; // Skip excluded files.
+		if (await checkExcluded(fileDir, excludedDirs)) continue; // Skip excluded files.
 		
 		const file = fs.readFileSync(fileDir, "utf8");
 		const lines = file.split("\n");
 		for (const line of lines) {
 			const words = line.split(" ");
+			if (words[0].includes("--")) continue; // Skip comments.
 			for (const word of words) {
 				for (const reservedFunction of reservedFunctions) {
 					if (!word.includes(`${reservedFunction}(`)) continue; // Skip words that don't contain a reserved Luapacker function.
@@ -53,7 +47,7 @@ async function parseFunctions(excludedDirs: string[]): Promise<LoadedDirectories
 					if (splitRerservedFunc[0] != "") continue; // Ensure it's actually a reserved Luapacker function and not a function ending with the same keyword.
 					
 					const moduleDir = splitRerservedFunc[1].split(")")[0].replace(/"|'/g, ""); // Get the provided string from the function call.
-					if (checkExcluded(path.join(directory, `/${moduleDir}`), excludedDirs)) continue; // Don't include excluded files.
+					if (await checkExcluded(path.join(directory, `/${moduleDir}`), excludedDirs)) continue; // Don't include excluded files.
 					loadedDirs[reservedFunction].push(moduleDir);
 				}
 			}
@@ -63,21 +57,13 @@ async function parseFunctions(excludedDirs: string[]): Promise<LoadedDirectories
 }
 
 // Handle load function calls.
-function getModules(relativeLoadDirs: string[]): { modules: LoadedFiles; failedBuilds: string[]; } {
+async function getModules(relativeLoadDirs: string[]): Promise<{ modules: LoadedFiles; failedBuilds: string[]; }> {
 	const modules: LoadedFiles = {};
 	const failedBuilds: string[] = [];
 	for (let relativeLoadDir of relativeLoadDirs) {
 		// If the module provided doesn't have a .lua or .luau extension, add it.
 		// In this case, .lua takes priority over .luau. If somebody has two files with the same name but different extensions, then they will have to provide an extension.
-		let loadDir = path.join(directory, `/${relativeLoadDir}`);
-		if (!loadDir.endsWith(".lua") && !loadDir.endsWith(".luau")) {
-			if (fs.existsSync(loadDir + ".lua")) {
-				loadDir += ".lua";
-			} else if (fs.existsSync(loadDir + ".luau")) {
-				loadDir += ".luau";
-			}
-		}
-
+		const loadDir = await util.checkExtension(path.join(directory, `/${relativeLoadDir}`), ".lua", ".luau");
 		try {
 			const module = fs.readFileSync(loadDir, "utf8");
 			modules[relativeLoadDir] = module;
@@ -94,7 +80,7 @@ function getModules(relativeLoadDirs: string[]): { modules: LoadedFiles; failedB
 }
 
 // Handle import function calls.
-function getImports(relativeImportDirs: string[]): { [key: string]: LoadedFiles; } {
+async function getImports(relativeImportDirs: string[]): Promise<{ [key: string]: LoadedFiles; }> {
 	const imports: LoadedFiles = {};
 	const JSONImports: LoadedFiles = {};
 	for (const relativeImportDir of relativeImportDirs) {
@@ -127,7 +113,6 @@ function getImports(relativeImportDirs: string[]): { [key: string]: LoadedFiles;
 
 export async function build() {
 	const startTime = Date.now(); // Get the start time for later use
-
 	// Check if a project exists in this directory and if not, exit.
 	if (!fs.existsSync(configDir)) {
 		util.error("No luapacker project found. Please run \"luapacker init\" to create a new project.");
@@ -148,8 +133,8 @@ export async function build() {
 
 	// Get loaded directories and modules.
 	const loadedDirs = await parseFunctions(excludeDirs);
-	const { modules, failedBuilds } = getModules(loadedDirs.load);
-	const { imports, JSONImports } = getImports(loadedDirs.import);
+	const { modules, failedBuilds } = await getModules(loadedDirs.load);
+	const { imports, JSONImports } = await getImports(loadedDirs.import);
 
 	// Initialize the final build with some default objects.
 	let finalBuild = "local luapackerImports = {}\nlocal luapackerModules = {}\n\n";
@@ -187,15 +172,8 @@ export async function build() {
 	// If a prelude directory is provided, then include that in the final build.
 	if (preludeDir) {
 		// Add an extension if one isn't already provided.
-		let preludeAbsoluteDir = path.join(directory, `/${preludeDir}`);
-		if (!preludeAbsoluteDir.endsWith(".lua") || preludeAbsoluteDir.endsWith(".luau")) {
-			if (fs.existsSync(preludeAbsoluteDir + ".lua")) {
-				preludeAbsoluteDir += ".lua";
-			} else if (fs.existsSync(preludeAbsoluteDir + ".luau")) {
-				preludeAbsoluteDir += ".luau";
-			}
-		}
-		
+		const preludeAbsoluteDir = await util.checkExtension(path.join(directory, `/${preludeDir}`), ".lua", ".luau");
+
 		try {
 			const preludeLines = fs.readFileSync(preludeAbsoluteDir, "utf8").split("\n");
 			for (const line of preludeLines) {
@@ -204,7 +182,7 @@ export async function build() {
 			}
 		} catch {
 			util.error(`Invalid prelude directory provided: ${path.resolve(preludeAbsoluteDir)}.\nThis file will not be included in the build.`);
-			return;
+			failedBuilds.push(preludeDir);
 		}
 	}
 
