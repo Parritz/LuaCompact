@@ -1,5 +1,5 @@
 {
-	"name": "luapacker",
+	"name": "lua-packer",
 	"description": "Luapacker is a Lua bundler written in Typescript that combines multiple Lua files into one.",
 	"version": "1.0.0",
 	"author": "parritz",

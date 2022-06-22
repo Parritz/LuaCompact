@@ -1,4 +1,4 @@
-name: "luapacker"
+name: "lua-packer"
 
 on:
     release:

@@ -9,10 +9,10 @@ After that, you can install Luapacker using one of the commands below depending 
 
 ```bash
 # Using NPM
-npm i luapacker -g
+npm i lua-packer -g
 
 # Using Yarn
-yarn global add luapacker
+yarn global add lua-packer
 ```
 
 After installation, you should be able to use Luapacker either by using `luapacker` or `lpk` in CLI. 
