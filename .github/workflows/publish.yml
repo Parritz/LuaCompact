@@ -1,9 +1,9 @@
 name: "luapacker"
 
 on:
-    push:
-        branches:
-            - master
+    release:
+        types: [published]
+
 jobs:
     release:
         name: 🚀 release
@@ -19,7 +19,7 @@ jobs:
             - name: 🔨 build
               run: |
                 npm i
-                npm run build
+                yarn run build
             - name: 🚀 publish
               run: npm publish --access public
               env:
