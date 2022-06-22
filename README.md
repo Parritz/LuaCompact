@@ -54,10 +54,9 @@ return core
 ### Importing other files
 
 Not only can you load modules, but you can also import other files using the `import` function.<br>
-Unlike the load function, the import function requires the file extension in the function call.<br>
+Unlike the `load` function, the `import` function requires the file extension in the function call.<br>
 
 JSON files are automatically converted to Lua dictionaries, while every other file will be converted to text.<br>
-
 
 index.lua Example:
 ```lua
@@ -71,3 +70,14 @@ config.json Example:
     "Enabled": true
 }
 ```
+
+### Config
+
+Every Luapacker project has a config file called `luapacker.json`.<br>
+Below, you can see the options and what each option is used for.
+
+| Key | Description | Type | Required |
+| --- | --- | --- | --- |
+| main | The program entry point. | string | true |
+| prelude | Code that runs after imports are defined but before modules are defined. | string | false |
+| exclude | Files that aren't included in the final output. | string[] | false |
