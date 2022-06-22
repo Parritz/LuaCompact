@@ -14,11 +14,11 @@ jobs:
             - name: 🟢 node
               uses: actions/setup-node@v3
               with:
-                  node-version: 14
+                  node-version: 18
                   registry-url: https://registry.npmjs.org
             - name: 🔨 build
               run: |
-                npm ci
+                npm i
                 npm run build
             - name: 🚀 publish
               run: npm publish --access public
