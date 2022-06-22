@@ -1,7 +1,9 @@
 {
 	"name": "luapacker",
-	"version": "1.0.0",
 	"description": "Luapacker is a Lua bundler written in Typescript that combines multiple Lua files into one.",
+	"version": "1.0.0",
+	"author": "parritz",
+	"license": "MIT",
 	"main": "dist/index.js",
 	"bin": {
 		"luapacker": "./dist/index.js",
@@ -9,11 +11,9 @@
 	},
 	"scripts": {
 		"copy": "copyfiles --error --up 1 src/functions.lua dist",
-		"build": "npm run copy && tsc",
-		"watch": "npm run copy && tsc --watch"
+		"build": "yarn run copy && tsc",
+		"watch": "yarn run copy && tsc --watch"
 	},
-	"author": "parritz",
-	"license": "MIT",
 	"dependencies": {
 		"chalk": "^4.1.2",
 		"fs": "^0.0.1-security",
@@ -22,6 +22,7 @@
 	"devDependencies": {
 		"@types/node": "^18.0.0",
 		"copyfiles": "^2.4.1",
-		"typescript": "^4.7.4"
+		"typescript": "^4.7.4",
+		"yarn": "^1.22.19"
 	}
 }
