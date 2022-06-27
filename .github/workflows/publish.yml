@@ -1,4 +1,4 @@
-name: "lua-packer"
+name: "luapacker"
 
 on:
     release:
@@ -18,9 +18,9 @@ jobs:
                   registry-url: https://registry.npmjs.org
             - name: 🔨 build
               run: |
-                npm i
-                yarn run build
+                pnpm i
+                pnpm run build
             - name: 🚀 publish
-              run: npm publish --access public
+              run: pnpm publish --access public
               env:
                   NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
