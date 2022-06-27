@@ -5,13 +5,11 @@ export type Command = {
 }
 
 export type Commands = {
-	[key: string]: Command;
+	[cmdName: string]: Command;
 }
 
-export type LoadedFiles = {
-	[key: string]: string;
-}
-
-export type LoadedDirectories = {
-	[key: string]: LoadedFiles;
+export type Config = {
+	main: string;
+	prelude?: string;
+	exclude?: string[];
 }

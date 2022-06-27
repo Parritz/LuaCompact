@@ -27,7 +27,7 @@ export default {
 		console.log(chalk.red("[ERROR]: ") + message);
 	},
 
-	stringToByteArray(String: string) { // Thanks StackOverflow!
+	stringToByteArray(String: string) {
 		const result = new Uint8Array(String.length);
 		for (let i = 0; i < String.length; i++){
 			result[i] = String.charCodeAt(i)
