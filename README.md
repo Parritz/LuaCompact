@@ -4,8 +4,6 @@ Luapacker is a Lua bundler written in Typescript that combines multiple Lua file
 
 ## Installation
 
-**NOTICE:** Installation via the methods below won't be available until V1.1.0.
-
 Before installing Luapacker, ensure that you have [Node.js](https://nodejs.org/en/) installed.<br>
 After that, you can install Luapacker using one of the commands below depending on which package manager you prefer.
 
@@ -15,9 +13,12 @@ npm i luapacker -g
 
 # Using Yarn
 yarn global add luapacker
+
+# Using PNPM
+pnpm add luapacker -g
 ```
 
-After installation, you should be able to use Luapacker either by using `luapacker` or `lpk` in CLI. 
+After installation, you should be able to use Luapacker either by using `luapacker` or `lpk` in terminal. 
 
 ## Usage
 
