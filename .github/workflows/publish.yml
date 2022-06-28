@@ -11,16 +11,25 @@ jobs:
         steps:
             - name: 📚 checkout
               uses: actions/checkout@v3.0.2
+
             - name: 🟢 node
               uses: actions/setup-node@v3
               with:
                   node-version: 18
                   registry-url: https://registry.npmjs.org
+
+            - name: 🔨 Install PNPM
+              uses: pnpm/action-setup@v2.0.1
+              id: pnpm-install
+              with:
+                version: 7
+                run_install: false
+
             - name: 🔨 build
               run: |
-                npm i pnpm
                 pnpm i
                 pnpm run build
+
             - name: 🚀 publish
               run: pnpm publish --access public
               env:
