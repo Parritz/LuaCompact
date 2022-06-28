@@ -14,11 +14,11 @@ export default {
 	async run(options: string[]): Promise<void> {
 		await build();
 		if (!options.includes("--watch")) process.exit(); // If the user did not include a watch option, exit the process.
-
-		// Get important directories & sort excluded directories into an array.
 		const directory = process.cwd();
-		const buildFileDir = path.join(directory, "/build/build.lua");
 		const configDir = path.join(directory, "/luapacker.json");
+		if (!fs.existsSync(configDir)) process.exit();
+		
+		const buildFileDir = path.join(directory, "/build/build.lua");
 		const config = JSON.parse(fs.readFileSync(configDir, "utf8"));
 		const excludeDirs: string[] = [];
 		if (config.exclude) {
@@ -28,7 +28,6 @@ export default {
 			}
 		}
 
-		// Get all files & watch them for changes.
 		const files = await util.retrieveFiles(directory);
 		util.log("Watching for changes...");
 		for (const file of files) {
@@ -39,7 +38,6 @@ export default {
 			});
 		}
 
-		// When a new file is added to the project, add it to the files array, build the project, and watch the file.
 		fs.watchFile(directory, { interval: 500 }, async () => {
 			await watchBuild();
 			const newFiles = await util.retrieveFiles(directory);
