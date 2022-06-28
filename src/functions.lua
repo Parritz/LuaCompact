@@ -16,11 +16,11 @@ end
 
 function load(dir)
 	local path = resolvePath(dir, luapackerModules)
-    local loadedScript = luapackerModules[path]
+	local loadedScript = luapackerModules[path]
 	if typeof(loadedScript) == "function" then
 		return loadedScript()
 	end
-    return "Invalid script path."
+	return "Invalid script path."
 end
 
 function import(dir)
@@ -29,5 +29,5 @@ function import(dir)
 	if typeof(importedFile) == "function" then
 		return importedFile()
 	end
-    return "Invalid file path."
+	return "Invalid file path."
 end
