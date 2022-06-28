@@ -61,9 +61,9 @@ async function buildImports(files: string[], config: Config): Promise<{ importBu
 
 		const fileContents = fs.readFileSync(file, "utf8");
 		if (extension.endsWith(".json")) {
-			importBuild += `luapackerImports["${relativePath}"] = function()\n\tlocal object = {}\n`;
 			try {
 				const parsedJSON = JSON.parse(fileContents);
+				importBuild += `luapackerImports["${relativePath}"] = function()\n\tlocal object = {}\n`;
 				for (const key of Object.keys(parsedJSON)) {
 					const value = parsedJSON[key];
 					if (typeof(value) === "string") {
@@ -87,6 +87,7 @@ async function buildImports(files: string[], config: Config): Promise<{ importBu
 			importBuild += `luapackerImports["${relativePath}"] = function()\n\treturn "\\${byteEncodedContents}"\nend\n`;
 		}
 	}
+	
 	return {
 		importBuild,
 		failedBuilds
