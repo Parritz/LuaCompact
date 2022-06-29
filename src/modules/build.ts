@@ -57,11 +57,11 @@ async function buildImports(files: string[], config: Config): Promise<{ importBu
 	const failedBuilds: string[] = [];
 	let importBuild: string = "";
 	for (const file of files) {
+		
 		const relativePath = path.relative(currentDirectory, file).replace(/\\/g, "/");
 		const extension = path.extname(file);
 		if (extension.endsWith("lua") || extension.endsWith("luau")) continue; // Ignore lua files
 		if (await checkExcluded(relativePath, config)) continue; // Ignore excluded files.
-		
 		const fileContents = fs.readFileSync(file, "utf8");
 		if (extension.endsWith(".json")) {
 			try {
@@ -71,11 +71,12 @@ async function buildImports(files: string[], config: Config): Promise<{ importBu
 					const value = parsedJSON[key];
 					if (typeof(value) === "string") {
 						importBuild += `\tobject["${key}"] = "${value}"\n`;
-						continue;
+					} else {
+						importBuild += `\tobject["${key}"] = ${value}\n`;
 					}
-					importBuild += `\tobject["${key}"] = ${value}\n`;
 					
 					if (Object.keys(parsedJSON)[Object.keys(parsedJSON).length - 1] === key) {
+						console.log("Hello!");
 						importBuild += "\treturn object\nend\n\n";
 					}
 				}
