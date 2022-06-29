@@ -10,10 +10,14 @@ const buildFileDir = path.join(buildDir, "/build.lua");
 const configDir = path.join(currentDirectory, "/luapacker.json");
 
 async function checkExcluded(fileDir: string, config: Config): Promise<boolean> {
+	const absoluteDir = path.join(currentDirectory, fileDir);
+	if (absoluteDir.includes("luapacker.json") || absoluteDir.includes(".vscode") || absoluteDir.includes(".git")) return true; // Ignore luapacker.json, .vscode, and .git files.
+	if (fileDir.startsWith("build/") || fileDir === config.main) return true; // Ignore build directory and main file.
+	if (config.prelude && fileDir === config.prelude) return true; // Ignore the prelude file.
 	if (!config.exclude) return false;
+
 	const excludedFiles = config.exclude;
 	fileDir = await util.checkExtension(fileDir, ".lua", ".luau");
-
 	let excluded: boolean = false;
 	for (const excludedFile of excludedFiles) {
 		if (fileDir.includes(excludedFile)) {
@@ -35,11 +39,9 @@ async function buildModules(files: string[], config: Config): Promise<string> {
 	let moduleBuild: string = "";
 	for (const luaFile of luaFiles) {
 		const relativePath = path.relative(currentDirectory, luaFile).replace(/\\/g, "/");
-		// Check if the luaFile is within the build directory.
-		if (relativePath.startsWith("build/") || luaFile == path.resolve(config.main)) continue;
-		if (await checkExcluded(relativePath, config)) continue; // Ignore files in the exclude list.
-		const fileContents = fs.readFileSync(luaFile, "utf8");
+		if (await checkExcluded(relativePath, config)) continue; // Ignore excluded files.
 
+		const fileContents = fs.readFileSync(luaFile, "utf8");
 		let formattedContents = "";
 		for (let line of fileContents.split("\n")) {
 			if (line.length != 1) line = `\t${line}`;
@@ -58,9 +60,8 @@ async function buildImports(files: string[], config: Config): Promise<{ importBu
 		const relativePath = path.relative(currentDirectory, file).replace(/\\/g, "/");
 		const extension = path.extname(file);
 		if (extension.endsWith("lua") || extension.endsWith("luau")) continue; // Ignore lua files
-		if (file.includes("luapacker.json") || file.includes(".vscode") || file.includes(".git")) continue; // Ignore luapacker.json, .vscode, and .git files.
-		if (relativePath.startsWith("build/") || await checkExcluded(relativePath, config)) continue; // Ignore files in the exclude list.
-
+		if (await checkExcluded(relativePath, config)) continue; // Ignore excluded files.
+		
 		const fileContents = fs.readFileSync(file, "utf8");
 		if (extension.endsWith(".json")) {
 			try {
