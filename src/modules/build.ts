@@ -76,7 +76,6 @@ async function buildImports(files: string[], config: Config): Promise<{ importBu
 					}
 					
 					if (Object.keys(parsedJSON)[Object.keys(parsedJSON).length - 1] === key) {
-						console.log("Hello!");
 						importBuild += "\treturn object\nend\n\n";
 					}
 				}
