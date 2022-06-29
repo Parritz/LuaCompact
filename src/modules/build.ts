@@ -3,10 +3,11 @@ import path from "path";
 import util from "./util";
 import { Config } from "../types";
 
-const directory = process.cwd();
+const currentDirectory = process.cwd();
 const luaFunctions = fs.readFileSync(path.join(__dirname, "../functions.lua"), "utf8");
-const buildFileDir = path.join(directory, "/build/build.lua");
-const configDir = path.join(directory, "/luapacker.json");
+const buildDir = path.join(currentDirectory, "/build")
+const buildFileDir = path.join(buildDir, "/build.lua");
+const configDir = path.join(currentDirectory, "/luapacker.json");
 
 async function checkExcluded(fileDir: string, config: Config): Promise<boolean> {
 	if (!config.exclude) return false;
@@ -33,8 +34,9 @@ async function buildModules(files: string[], config: Config): Promise<string> {
 
 	let moduleBuild: string = "";
 	for (const luaFile of luaFiles) {
-		const relativePath = path.relative(directory, luaFile).replace(/\\/g, "/");
-		if (luaFile == buildFileDir || luaFile == path.resolve(config.main)) continue; // Ignore build.lua and the entry point file.
+		const relativePath = path.relative(currentDirectory, luaFile).replace(/\\/g, "/");
+		// Check if the luaFile is within the build directory.
+		if (relativePath.startsWith("build/") || luaFile == path.resolve(config.main)) continue;
 		if (await checkExcluded(relativePath, config)) continue; // Ignore files in the exclude list.
 		const fileContents = fs.readFileSync(luaFile, "utf8");
 
@@ -53,11 +55,11 @@ async function buildImports(files: string[], config: Config): Promise<{ importBu
 	const failedBuilds: string[] = [];
 	let importBuild: string = "";
 	for (const file of files) {
-		const relativePath = path.relative(directory, file).replace(/\\/g, "/");
+		const relativePath = path.relative(currentDirectory, file).replace(/\\/g, "/");
 		const extension = path.extname(file);
 		if (extension.endsWith("lua") || extension.endsWith("luau")) continue; // Ignore lua files
 		if (file.includes("luapacker.json") || file.includes(".vscode") || file.includes(".git")) continue; // Ignore luapacker.json, .vscode, and .git files.
-		if (await checkExcluded(relativePath, config)) continue; // Ignore files in the exclude list.
+		if (relativePath.startsWith("build/") || await checkExcluded(relativePath, config)) continue; // Ignore files in the exclude list.
 
 		const fileContents = fs.readFileSync(file, "utf8");
 		if (extension.endsWith(".json")) {
@@ -105,19 +107,23 @@ export async function build() {
 		util.error("No entry file found. Please run \"luapacker init\" to create a new project.");
 		return;
 	}
+	if (!fs.existsSync(buildDir)) {
+		fs.mkdirSync(path.join(currentDirectory, "/build"));
+	}
 	
-	const files = await util.retrieveFiles(directory);
+	const files = await util.retrieveFiles(currentDirectory);
 	const moduleBuild = await buildModules(files, config);
 	const { importBuild, failedBuilds } = await buildImports(files, config);
 
 	let preludeBuild = "";
 	if (config.prelude && config.prelude != "") {
-		if (!fs.existsSync(config.prelude)) {
+		if (fs.existsSync(config.prelude)) {
+			const prelude = fs.readFileSync(config.prelude, "utf8");
+			preludeBuild = `${prelude}\n\n`;
+		} else {
 			util.error(`Unable to find prelude file: ${config.prelude}.\nThis file will not be included in the final build.`);
 			failedBuilds.push(config.prelude);
 		}
-		const prelude = fs.readFileSync(config.prelude, "utf8");
-		preludeBuild = `${prelude}\n`;
 	}
 
 	let finalBuild = `${luaFunctions}\n\n`;

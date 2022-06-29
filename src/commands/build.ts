@@ -14,41 +14,53 @@ export default {
 	async run(options: string[]): Promise<void> {
 		await build();
 		if (!options.includes("--watch")) process.exit(); // If the user did not include a watch option, exit the process.
-		const directory = process.cwd();
-		const configDir = path.join(directory, "/luapacker.json");
+		const currentDir = process.cwd();
+		const configDir = path.join(currentDir, "/luapacker.json");
 		if (!fs.existsSync(configDir)) process.exit();
 		
-		const buildFileDir = path.join(directory, "/build/build.lua");
+		const buildDir = path.join(currentDir, "/build");
 		const config = JSON.parse(fs.readFileSync(configDir, "utf8"));
 		const excludeDirs: string[] = [];
 		if (config.exclude) {
 			for (const excludeDir of config.exclude) {
-				const absoluteExcludeDir = path.join(directory, `/${excludeDir}`);
+				const absoluteExcludeDir = path.join(currentDir, `/${excludeDir}`);
 				excludeDirs.push(absoluteExcludeDir);
 			}
 		}
 
-		const files = await util.retrieveFiles(directory);
+		const files = await util.retrieveFiles(currentDir);
 		util.log("Watching for changes...");
 		for (const file of files) {
-			if (file == buildFileDir) continue; // Skip build file.
+			if (file.startsWith(buildDir)) continue; // Skip files in the build directory.
 			if (excludeDirs.includes(file)) continue; // Skip excluded files.
 			fs.watchFile(file, { interval: 500 }, async () => {
 				await watchBuild();
 			});
 		}
 
-		fs.watchFile(directory, { interval: 500 }, async () => {
-			await watchBuild();
-			const newFiles = await util.retrieveFiles(directory);
-			for (const newFile of newFiles) {
-				if (!files.includes(newFile)) {
-					files.push(newFile);
-					fs.watchFile(newFile, { interval: 500 }, async () => {
+		const directories = await util.retrieveDirectories(currentDir);
+		directories.push(currentDir);
+		for (const directory of directories) {
+			if (directory.startsWith(buildDir)) continue; // Skip files in the build directory.
+			fs.watchFile(directory, { interval: 500 }, async () => {
+				const currentFiles = await util.retrieveFiles(currentDir);
+				for (const file of currentFiles) {
+					// Watch files that are added to the project.
+					if (!files.includes(file)) {
+						files.push(file);
 						await watchBuild();
-					});
+						fs.watchFile(file, { interval: 500 }, async () => {
+							await watchBuild();
+						});
+					}
+
+					// Stop watching files when they're removed from the project.
+					if (!currentFiles.includes(file)) {
+						files.splice(files.indexOf(file), 1);
+						fs.unwatchFile(file);
+					}
 				}
-			}
-		});
+			});
+		}
 	}
 }

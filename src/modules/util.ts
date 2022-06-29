@@ -61,11 +61,26 @@ export default {
 			}
 	
 			// Walk through subdirectories and add any files matching the wanted extensions to the list.
-			if (fs.lstatSync(path.join(directory, file)).isDirectory()) {
-				const filesWithinDir = await this.retrieveFiles(path.join(directory, file), extensions);
-				files.push(...filesWithinDir);
+			if (isDirectory) {
+				const filesInDir = await this.retrieveFiles(path.join(directory, file), extensions);
+				files.push(...filesInDir);
 			}
 		});
 		return files;
 	},
+
+	async retrieveDirectories(directory: string): Promise<string[]> {
+		const directories: string[] = [];
+		fs.readdirSync(directory).forEach(async (file) => {
+			const isDirectory = fs.lstatSync(path.join(directory, file)).isDirectory()
+			if (isDirectory) directories.push(path.resolve(path.join(directory, file)));
+	
+			// Walk through subdirectories and add any directories found.
+			if (fs.lstatSync(path.join(directory, file)).isDirectory()) {
+				const dirs = await this.retrieveDirectories(path.join(directory, file));
+				directories.push(...dirs);
+			}
+		});
+		return directories;
+	}
 }

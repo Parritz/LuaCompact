@@ -12,8 +12,8 @@ export default {
 	name: "init",
 	description: "Initializes a new luapacker project",
 	async run(): Promise<void> {
-		const directory = process.cwd();
-		const configDir = path.join(directory, "/luapacker.json");
+		const currentDirectory = process.cwd();
+		const configDir = path.join(currentDirectory, "/luapacker.json");
 
 		if (!fs.existsSync(configDir)) {
 			// Prompt the user for the entry file and module directory.
@@ -29,7 +29,7 @@ export default {
 			fs.writeFileSync(configDir, JSON.stringify(defaultJSON, null, 4)); // Create the config file in the user's working directory.
 
 			// Create the entry point file and root directory if they don't already exists.
-			const entryDir = path.join(directory, `/${defaultJSON.main}`);
+			const entryDir = path.join(currentDirectory, `/${defaultJSON.main}`);
 			if (!fs.existsSync(entryDir)) {
 				fs.writeFileSync(entryDir, "print(\"Hello World!\")");
 				util.log(`No entry point found. Created ${defaultJSON.main}.`);
