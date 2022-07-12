@@ -107,4 +107,4 @@ Below, you can see the options and what each option is used for.
 
 ## Contributing
 
-Information about contributing to the project can be found [here](CONTRIBUTING.md)
+Information about contributing to the project can be found [here](CONTRIBUTING.md).
