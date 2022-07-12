@@ -1,5 +1,5 @@
 <div align="center">
-	<h1><img src="images/LuaCompactBanner.svg"></img></h1>
+	<h1><img src="images/LuaCompactBanner.svg" width=512p></img></h1>
     <br>
 	<a href="https://github.com/Parritz/LuaCompact/actions/workflows/publish.yml">
         <img src="https://github.com/Parritz/LuaCompact/actions/workflows/publish.yml/badge.svg" alt="GitHub Actions Release Status">
@@ -7,9 +7,8 @@
 	<a href="https://github.com/Parritz/LuaCompact/releases/latest"><img src="https://img.shields.io/github/v/release/Parritz/LuaCompact?include_prereleases" alt="Latest Release" /></a>
 	<br>
     A Lua bundler written in Typescript that combines multiple Lua files into one, making managing large-scale projects a breeze.
+    <h1></h1>
 </div>
-
----
 
 ## Installation
 
