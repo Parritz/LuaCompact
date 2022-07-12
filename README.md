@@ -1,5 +1,5 @@
 <div align="center">
-	<h1><img src="images/LuaCompactBanner.svg" width=512p></img></h1>
+	<h1><img src="images/LuaCompactBanner.png" width="512"></img></h1>
     <br>
 	<a href="https://github.com/Parritz/LuaCompact/actions/workflows/publish.yml">
         <img src="https://github.com/Parritz/LuaCompact/actions/workflows/publish.yml/badge.svg" alt="GitHub Actions Release Status">
