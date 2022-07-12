@@ -1,5 +1,9 @@
 <div align="center">
+<<<<<<< HEAD
 	<h1><img src="images/LuaCompactBanner.png" width="512"></img></h1>
+=======
+	<img src="images/LuaCompactBanner.svg" width=512p></img>
+>>>>>>> 9dd404afac835c54d6a44d6705d716f35dd5bc27
     <br>
 	<a href="https://github.com/Parritz/LuaCompact/actions/workflows/publish.yml">
         <img src="https://github.com/Parritz/LuaCompact/actions/workflows/publish.yml/badge.svg" alt="GitHub Actions Release Status">
@@ -104,5 +108,3 @@ Below, you can see the options and what each option is used for.
 | main | The program entry point. | A directory to a lua file. | string | true |
 | prelude | Code that runs after imports are defined but before modules are defined. | A directory to a lua file. | string | false |
 | exclude | Files that aren't included in the final output. | A list of directories. | string[] | false |
-
-#
