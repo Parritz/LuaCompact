@@ -10,10 +10,10 @@ const defaultJSON = {
 
 export default {
 	name: "init",
-	description: "Initializes a new luapacker project",
+	description: "Initializes a new LuaCompact project",
 	async run(): Promise<void> {
 		const currentDirectory = process.cwd();
-		const configDir = path.join(currentDirectory, "/luapacker.json");
+		const configDir = path.join(currentDirectory, "/luacompact.json");
 
 		if (!fs.existsSync(configDir)) {
 			// Prompt the user for the entry file and module directory.
@@ -36,7 +36,7 @@ export default {
 			}
 			util.success("Initialized project!");
 		} else {
-			util.error("A luapacker project already exists here.");
+			util.error("A LuaCompact project already exists here.");
 		}
 		process.exit();
 	}

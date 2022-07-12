@@ -7,11 +7,11 @@ const currentDirectory = process.cwd();
 const luaFunctions = fs.readFileSync(path.join(__dirname, "../functions.lua"), "utf8");
 const buildDir = path.join(currentDirectory, "/build")
 const buildFileDir = path.join(buildDir, "/build.lua");
-const configDir = path.join(currentDirectory, "/luapacker.json");
+const configDir = path.join(currentDirectory, "/luacompact.json");
 
 async function checkExcluded(fileDir: string, config: Config): Promise<boolean> {
 	const absoluteDir = path.join(currentDirectory, fileDir);
-	if (absoluteDir.includes("luapacker.json") || absoluteDir.includes(".vscode") || absoluteDir.includes(".git")) return true; // Ignore luapacker.json, .vscode, and .git files.
+	if (absoluteDir.includes("luacompact.json") || absoluteDir.includes(".vscode") || absoluteDir.includes(".git")) return true; // Ignore luacompact.json, .vscode, and .git files.
 	if (fileDir.startsWith("build/") || fileDir === config.main) return true; // Ignore build directory and main file.
 	if (config.prelude && fileDir === config.prelude) return true; // Ignore the prelude file.
 	if (!config.exclude) return false;
@@ -47,7 +47,7 @@ async function buildModules(files: string[], config: Config): Promise<string> {
 			if (line.length != 1) line = `\t${line}`;
 			formattedContents += line;
 		}
-		moduleBuild += `luapackerModules["${relativePath}"] = function()\n${formattedContents}\nend\n`;
+		moduleBuild += `luacompactModules["${relativePath}"] = function()\n${formattedContents}\nend\n`;
 		if (luaFiles[luaFiles.length - 1] === luaFile) moduleBuild += "\n";
 	}
 	return moduleBuild;
@@ -60,13 +60,13 @@ async function buildImports(files: string[], config: Config): Promise<{ importBu
 		
 		const relativePath = path.relative(currentDirectory, file).replace(/\\/g, "/");
 		const extension = path.extname(file);
-		if (extension.endsWith("lua") || extension.endsWith("luau")) continue; // Ignore lua files
+		if (extension.endsWith("lua") || extension.endsWith("luau")) continue; // Ignore Lua files.
 		if (await checkExcluded(relativePath, config)) continue; // Ignore excluded files.
 		const fileContents = fs.readFileSync(file, "utf8");
 		if (extension.endsWith(".json")) {
 			try {
 				const parsedJSON = JSON.parse(fileContents);
-				importBuild += `luapackerImports["${relativePath}"] = function()\n\tlocal object = {}\n`;
+				importBuild += `luacompactImports["${relativePath}"] = function()\n\tlocal object = {}\n`;
 				for (const key of Object.keys(parsedJSON)) {
 					const value = parsedJSON[key];
 					if (typeof(value) === "string") {
@@ -87,7 +87,7 @@ async function buildImports(files: string[], config: Config): Promise<{ importBu
 			
 		} else {
 			const byteEncodedContents: string = util.stringToByteArray(fileContents).join("\\");
-			importBuild += `luapackerImports["${relativePath}"] = function()\n\treturn "\\${byteEncodedContents}"\nend\n`;
+			importBuild += `luacompactImports["${relativePath}"] = function()\n\treturn "\\${byteEncodedContents}"\nend\n`;
 		}
 	}
 	
@@ -100,12 +100,12 @@ async function buildImports(files: string[], config: Config): Promise<{ importBu
 export async function build() {
 	const startTime: number = Date.now();
 	if (!fs.existsSync(configDir)) {
-		util.error("No Luapacker project found. Please run \"luapacker init\" to create a new project.");
+		util.error("No LuaCompact project found. Please run \"luacompact init\" to create a new project.");
 		return;
 	}
 	const config: Config = JSON.parse(fs.readFileSync(configDir, "utf8"));
 	if (!config.main || !fs.existsSync(config.main)) {
-		util.error("No entry file found. Please run \"luapacker init\" to create a new project.");
+		util.error("No entry file found. Please run \"luacompact init\" to create a new project.");
 		return;
 	}
 	if (!fs.existsSync(buildDir)) {

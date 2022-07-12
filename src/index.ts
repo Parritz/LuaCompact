@@ -11,7 +11,7 @@ fs.readdirSync(commandFolder).forEach((file) => {
 	commands[command.name] = command;
 });
 
-// Get the args provided to luapacker and the command to run.
+// Get the args provided to LuaCompact and the command to run.
 const args: string[] = process.argv.splice(2);
 const commandProvided: string | undefined = args.shift();
 

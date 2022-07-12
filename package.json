@@ -1,13 +1,13 @@
 {
-	"name": "luapacker",
-	"description": "Luapacker is a Lua bundler written in Typescript that combines multiple Lua files into one.",
-	"version": "1.2.4",
-	"author": "parritz",
+	"name": "luacompact",
+	"description": "Luacompact is a Lua bundler written in Typescript that combines multiple Lua files into one.",
+	"version": "1.3.0",
+	"author": "Parritz",
 	"license": "MIT",
 	"main": "dist/index.js",
 	"bin": {
-		"luapacker": "./dist/index.js",
-		"lpk": "./dist/index.js"
+		"luacompact": "./dist/index.js",
+		"lct": "./dist/index.js"
 	},
 	"scripts": {
 		"copy": "copyfiles --error --up 1 src/functions.lua dist",

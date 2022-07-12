@@ -10,12 +10,12 @@ async function watchBuild(): Promise<void> {
 
 export default {
 	name: "build",
-	description: "Builds a luapacker project.",
+	description: "Builds a LuaCompact project.",
 	async run(options: string[]): Promise<void> {
 		await build();
 		if (!options.includes("--watch")) process.exit(); // If the user did not include a watch option, exit the process.
 		const currentDir = process.cwd();
-		const configDir = path.join(currentDir, "/luapacker.json");
+		const configDir = path.join(currentDir, "/luacompact.json");
 		if (!fs.existsSync(configDir)) process.exit();
 		
 		const buildDir = path.join(currentDir, "/build");

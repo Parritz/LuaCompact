@@ -1,22 +1,22 @@
-local luapackerImports = {}
-local luapackerModules = {}
+local luacompactImports = {}
+local luacompactModules = {}
 
-function resolvePath(dir, luapackerTable)
+function resolvePath(dir, luacompactTable)
 	while string.sub(dir, 1, 1) == "." or string.sub(dir, 1, 1) == "/" do
 		dir = string.sub(dir, 2)
 	end
 
-	if luapackerTable[dir..".lua"] then
+	if luacompactTable[dir..".lua"] then
 		dir = dir..".lua"
-	elseif luapackerTable[dir..".luau"] then
+	elseif luacompactTable[dir..".luau"] then
 		dir = dir..".luau"
 	end
 	return dir
 end
 
 function load(dir)
-	local path = resolvePath(dir, luapackerModules)
-	local loadedScript = luapackerModules[path]
+	local path = resolvePath(dir, luacompactModules)
+	local loadedScript = luacompactModules[path]
 	if typeof(loadedScript) == "function" then
 		return loadedScript()
 	end
@@ -24,8 +24,8 @@ function load(dir)
 end
 
 function import(dir)
-	local path = resolvePath(dir, luapackerImports)
-	local importedFile = luapackerImports[path]
+	local path = resolvePath(dir, luacompactImports)
+	local importedFile = luacompactImports[path]
 	if typeof(importedFile) == "function" then
 		return importedFile()
 	end
