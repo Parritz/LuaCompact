@@ -1,7 +1,7 @@
 {
 	"name": "luacompact",
 	"description": "Luacompact is a Lua bundler written in Typescript that combines multiple Lua files into one.",
-	"version": "1.3.0",
+	"version": "1.3.1",
 	"author": "Parritz",
 	"license": "MIT",
 	"main": "dist/index.js",
@@ -11,8 +11,7 @@
 	},
 	"scripts": {
 		"copy": "copyfiles --error --up 1 src/functions.lua dist",
-		"build": "pnpm run copy && tsc",
-		"watch": "pnpm run copy && tsc --watch"
+		"build": "pnpm run copy && tsc"
 	},
 	"dependencies": {
 		"chalk": "^4.1.2",
