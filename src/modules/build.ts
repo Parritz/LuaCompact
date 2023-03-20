@@ -5,20 +5,30 @@ import { Config } from "../types";
 
 const currentDirectory = process.cwd();
 const luaFunctions = fs.readFileSync(path.join(__dirname, "../functions.lua"), "utf8");
-const buildDir = path.join(currentDirectory, "/build")
+const buildDir = path.join(currentDirectory, "/build");
 const buildFileDir = path.join(buildDir, "/build.lua");
 const configDir = path.join(currentDirectory, "/luacompact.json");
+const excludeList = [
+	"luacompact.json",
+	".vscode",
+	".git"
+];
 
+// Checks if a file is excluded from the final build.
+// TO-DO: Finish cleaning this function up.
 async function checkExcluded(fileDir: string, config: Config): Promise<boolean> {
-	const absoluteDir = path.join(currentDirectory, fileDir);
-	if (absoluteDir.includes("luacompact.json") || absoluteDir.includes(".vscode") || absoluteDir.includes(".git")) return true; // Ignore luacompact.json, .vscode, and .git files.
-	if (fileDir.startsWith("build/") || fileDir === config.main) return true; // Ignore build directory and main file.
-	if (config.prelude && fileDir === config.prelude) return true; // Ignore the prelude file.
 	if (!config.exclude) return false;
+	if (fileDir.startsWith("build/") || fileDir === config.main || (config.prelude && fileDir === config.prelude)) return true;
+	const absoluteDir = path.join(currentDirectory, fileDir);
+	for (const excludedItem of excludeList) {
+		if (absoluteDir.includes(excludedItem)) {
+			return true;
+		}
+	}
 
-	const excludedFiles = config.exclude;
 	fileDir = await util.checkExtension(fileDir, ".lua", ".luau");
-	let excluded: boolean = false;
+	const excludedFiles = config.exclude;
+	let excluded = false;
 	for (const excludedFile of excludedFiles) {
 		if (fileDir.includes(excludedFile)) {
 			excluded = true;
@@ -36,7 +46,7 @@ async function buildModules(files: string[], config: Config): Promise<string> {
 		}
 	}
 
-	let moduleBuild: string = "";
+	let moduleBuild = "";
 	for (const luaFile of luaFiles) {
 		const relativePath = path.relative(currentDirectory, luaFile).replace(/\\/g, "/");
 		if (await checkExcluded(relativePath, config)) continue; // Ignore excluded files.
@@ -55,7 +65,7 @@ async function buildModules(files: string[], config: Config): Promise<string> {
 
 async function buildImports(files: string[], config: Config): Promise<{ importBuild: string; failedBuilds: string[]; }> {
 	const failedBuilds: string[] = [];
-	let importBuild: string = "";
+	let importBuild = "";
 	for (const file of files) {
 		
 		const relativePath = path.relative(currentDirectory, file).replace(/\\/g, "/");
@@ -84,7 +94,6 @@ async function buildImports(files: string[], config: Config): Promise<{ importBu
 				failedBuilds.push(relativePath);
 				continue;
 			}
-			
 		} else {
 			const byteEncodedContents: string = util.stringToByteArray(fileContents).join("\\");
 			importBuild += `luacompactImports["${relativePath}"] = function()\n\treturn "\\${byteEncodedContents}"\nend\n`;
@@ -132,7 +141,7 @@ export async function build() {
 	finalBuild += `${fs.readFileSync(config.main, "utf8")}`;
 	
 	fs.writeFileSync(buildFileDir, finalBuild);
-	const timeTaken: number = (Date.now() - startTime) / 1000 // Get the amount of time taken for the build to complete in seconds.
+	const timeTaken: number = (Date.now() - startTime) / 1000;
 	if (failedBuilds.length > 0) {
 		return util.warn(`Finished building in ${timeTaken} seconds. Failed to build the following files: ${failedBuilds.join(", ")}`);
 	}

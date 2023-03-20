@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import util from "../modules/util";
-import { build } from "../modules/build"
+import { build } from "../modules/build";
 
 async function watchBuild(): Promise<void> {
 	await build();
@@ -63,4 +63,4 @@ export default {
 			});
 		}
 	}
-}
+};

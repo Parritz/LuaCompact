@@ -1,12 +1,12 @@
 import fs from "fs";
-import path from "path"
+import path from "path";
 import util from "../modules/util";
 
 const defaultJSON = {
 	main: "index.lua",
 	prelude: "",
 	exclude: [],
-}
+};
 
 export default {
 	name: "init",
@@ -40,4 +40,4 @@ export default {
 		}
 		process.exit();
 	}
-}
+};
