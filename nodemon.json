@@ -1,0 +1,5 @@
+{
+	"watch": ["src"],
+	"ext": "ts,lua,d.ts",
+	"exec": "npm run copy && tsc"
+}

@@ -12,6 +12,6 @@ To get the codebase setup, you will want to do the following.
 
 1. Fork & clone the repository.
 2. Run `pnpm install`
-3. Run `pnpm run build` (Note: You can use tsc -w to watch for Typescript file changes. This command is needed when you edit .lua files.)
+3. Run `pnpm run build` (Note: You can use `pnpm run watch` to automatically build after a file is edited.)
 4. Make your changes.
 5. Submit your pull request.
