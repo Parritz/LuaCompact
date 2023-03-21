@@ -6,8 +6,9 @@ import { Command, Commands } from "./types";
 
 const commands: Commands = {};
 const commandFolder: string = path.join(__dirname, "/commands");
-fs.readdirSync(commandFolder).forEach(async (file) => {
-	const command: Command = await import(path.join(commandFolder, file));
+fs.readdirSync(commandFolder).forEach((file) => {
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
+	const command: Command = require(path.join(commandFolder, file)).default;
 	commands[command.name] = command;
 });
 

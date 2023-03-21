@@ -12,7 +12,7 @@
 	"scripts": {
 		"copy": "copyfiles --error --up 1 src/functions.lua dist",
 		"build": "npm run copy && tsc",
-		"watch": "nodemon"
+		"watch": "nodemon || exit 1"
 	},
 	"dependencies": {
 		"chalk": "^4.1.2"
