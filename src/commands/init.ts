@@ -5,7 +5,7 @@ import util from "../modules/util";
 const defaultJSON = {
 	main: "index.lua",
 	prelude: "",
-	exclude: [],
+	exclude: []
 };
 
 export default {
@@ -16,20 +16,16 @@ export default {
 		const configDir = path.join(currentDirectory, "/luacompact.json");
 
 		if (!fs.existsSync(configDir)) {
-			// Prompt the user for the entry file and module directory.
-			const entryDirInput = await util.prompt("Please enter the entry file: ");
-
-			// If the user provides both an entry file and a root directory, we'll use those.
-			// If not, it's safe to assume they want to use the default values.
+			const entryDirInput = await util.prompt("Please enter the entry file name: ");
 			if (entryDirInput) {
 				let entryDir = entryDirInput;
 				if (!entryDirInput.endsWith(".lua") && !entryDirInput.endsWith(".luau")) entryDir += ".lua";
 				defaultJSON.main = entryDir;
 			}
-			fs.writeFileSync(configDir, JSON.stringify(defaultJSON, null, 4)); // Create the config file in the user's working directory.
 
-			// Create the entry point file and root directory if they don't already exists.
+			// Create the config file and the entry point file if it doesn't already exist.
 			const entryDir = path.join(currentDirectory, `/${defaultJSON.main}`);
+			fs.writeFileSync(configDir, JSON.stringify(defaultJSON, null, 4));
 			if (!fs.existsSync(entryDir)) {
 				fs.writeFileSync(entryDir, "print(\"Hello World!\")");
 				util.log(`No entry point found. Created ${defaultJSON.main}.`);

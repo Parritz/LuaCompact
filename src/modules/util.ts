@@ -1,15 +1,8 @@
 import fs from "fs";
 import path from "path";
 import chalk from "chalk";
-import readline from "readline";
-import util from "util";
 
-const readlineInterface = readline.createInterface({
-	input: process.stdin,
-	output: process.stdout,
-});
-const promptUser = util.promisify(readlineInterface.question).bind(readlineInterface);
-
+const { stdin, stdout } = process;
 export default {
 	success(message: string): void {
 		console.log(chalk.green("[SUCCESS]: ") + message);
@@ -36,7 +29,13 @@ export default {
 	},
 
 	async prompt(question: string): Promise<string> {
-		return await promptUser(question) as unknown as string;
+		return await new Promise((resolve, reject) => {
+			stdin.resume();
+			stdout.write(question);
+
+			stdin.on("data", data => resolve(data.toString().trim()));
+			stdin.on("error", err => reject(err));
+		}) as unknown as string;
 	},
 
 	async checkExtension(directory: string, firstExtension: string, secondExtension: string): Promise<string> {
