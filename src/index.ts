@@ -2,9 +2,9 @@
 import fs from "fs";
 import path from "path";
 import util from "./modules/util";
-import { Command, Commands } from "./types";
+import { Command } from "./types";
 
-const commands: Commands = {};
+const commands: { [cmdName: string]: Command } = {};
 const commandFolder: string = path.join(__dirname, "/commands");
 fs.readdirSync(commandFolder).forEach((file) => {
 	// eslint-disable-next-line @typescript-eslint/no-var-requires

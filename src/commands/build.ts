@@ -14,6 +14,7 @@ export default {
 	async run(options: string[]): Promise<void> {
 		await build();
 		if (!options.includes("--watch")) process.exit(); // If the user did not include a watch option, exit the process.
+		
 		const currentDir = process.cwd();
 		const configDir = path.join(currentDir, "/luacompact.json");
 		if (!fs.existsSync(configDir)) process.exit();

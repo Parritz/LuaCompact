@@ -5,8 +5,6 @@ import { Config } from "../types";
 
 const currentDirectory = process.cwd();
 const luaFunctions = fs.readFileSync(path.join(__dirname, "../functions.lua"), "utf8");
-const buildDir = path.join(currentDirectory, "/build");
-const buildFileDir = path.join(buildDir, "/build.lua");
 const configDir = path.join(currentDirectory, "/luacompact.json");
 const excludeList = [
 	"luacompact.json",
@@ -14,11 +12,11 @@ const excludeList = [
 	".git"
 ];
 
-// Checks if a file is excluded from the final build.
-// TO-DO: Finish cleaning this function up.
-async function checkExcluded(fileDir: string, config: Config): Promise<boolean> {
+// Checks if the file directory is excluded in config
+async function checkExcludedFiles(fileDir: string, config: Config): Promise<boolean> {
 	if (!config.exclude) return false;
-	if (fileDir.startsWith("build/") || fileDir === config.main || (config.prelude && fileDir === config.prelude)) return true;
+	if (fileDir.startsWith(("build/")) || fileDir === config.main || (config.prelude && fileDir === config.prelude)) return true;
+
 	const absoluteDir = path.join(currentDirectory, fileDir);
 	for (const excludedItem of excludeList) {
 		if (absoluteDir.includes(excludedItem)) {
@@ -38,6 +36,7 @@ async function checkExcluded(fileDir: string, config: Config): Promise<boolean> 
 	return excluded;
 }
 
+// Builds all .Lua and .Luau files
 async function buildModules(files: string[], config: Config): Promise<string> {
 	const luaFiles: string[] = [];
 	for (const file of files) {
@@ -49,7 +48,7 @@ async function buildModules(files: string[], config: Config): Promise<string> {
 	let moduleBuild = "";
 	for (const luaFile of luaFiles) {
 		const relativePath = path.relative(currentDirectory, luaFile).replace(/\\/g, "/");
-		if (await checkExcluded(relativePath, config)) continue; // Ignore excluded files.
+		if (await checkExcludedFiles(relativePath, config)) continue; // Ignore excluded files.
 
 		const fileContents = fs.readFileSync(luaFile, "utf8");
 		let formattedContents = "";
@@ -63,15 +62,16 @@ async function buildModules(files: string[], config: Config): Promise<string> {
 	return moduleBuild;
 }
 
+// Builds .json files and files with other extensions
 async function buildImports(files: string[], config: Config): Promise<{ importBuild: string; failedBuilds: string[]; }> {
 	const failedBuilds: string[] = [];
 	let importBuild = "";
 	for (const file of files) {
-		
-		const relativePath = path.relative(currentDirectory, file).replace(/\\/g, "/");
 		const extension = path.extname(file);
-		if (extension.endsWith("lua") || extension.endsWith("luau")) continue; // Ignore Lua files.
-		if (await checkExcluded(relativePath, config)) continue; // Ignore excluded files.
+		const relativePath = path.relative(currentDirectory, file).replace(/\\/g, "/");
+		if (extension.endsWith("lua") || extension.endsWith("luau")) continue;
+		if (await checkExcludedFiles(relativePath, config)) continue;
+		
 		const fileContents = fs.readFileSync(file, "utf8");
 		if (extension.endsWith(".json")) {
 			try {
@@ -112,15 +112,17 @@ export async function build() {
 		util.error("No LuaCompact project found. Please run \"luacompact init\" to create a new project.");
 		return;
 	}
+
 	const config: Config = JSON.parse(fs.readFileSync(configDir, "utf8"));
 	if (!config.main || !fs.existsSync(config.main)) {
 		util.error("No entry file found. Please run \"luacompact init\" to create a new project.");
 		return;
 	}
-	if (!fs.existsSync(buildDir)) {
-		fs.mkdirSync(path.join(currentDirectory, "/build"));
-	}
-	
+
+	const buildDir = path.join(currentDirectory, (config.buildDirectory || "build"));
+	const buildFileDir = path.join(buildDir, "/build.lua");
+
+	if (!fs.existsSync(buildDir)) fs.mkdirSync(buildDir); // Create 
 	const files = await util.retrieveFiles(currentDirectory);
 	const moduleBuild = await buildModules(files, config);
 	const { importBuild, failedBuilds } = await buildImports(files, config);
@@ -139,8 +141,8 @@ export async function build() {
 	let finalBuild = `${luaFunctions}\n\n`;
 	finalBuild += importBuild + preludeBuild + moduleBuild;
 	finalBuild += `${fs.readFileSync(config.main, "utf8")}`;
-	
 	fs.writeFileSync(buildFileDir, finalBuild);
+
 	const timeTaken: number = (Date.now() - startTime) / 1000;
 	if (failedBuilds.length > 0) {
 		return util.warn(`Finished building in ${timeTaken} seconds. Failed to build the following files: ${failedBuilds.join(", ")}`);

@@ -5,7 +5,8 @@ import util from "../modules/util";
 const defaultJSON = {
 	main: "index.lua",
 	prelude: "",
-	exclude: []
+	exclude: [],
+	exportDirectory: "build"
 };
 
 export default {
