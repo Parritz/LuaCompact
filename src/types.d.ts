@@ -8,5 +8,5 @@ export type Config = {
 	main: string;
 	prelude?: string;
 	exclude?: string[];
-	buildDirectory?: string;
+	exportDirectory?: string;
 }

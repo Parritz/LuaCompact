@@ -38,12 +38,22 @@ export default {
 		}) as unknown as string;
 	},
 
-	async checkExtension(directory: string, firstExtension: string, secondExtension: string): Promise<string> {
-		if (!directory.endsWith(firstExtension) && !directory.endsWith(secondExtension)) {
-			if (fs.existsSync(directory + firstExtension)) {
-				directory += firstExtension;
-			} else if (fs.existsSync(directory + secondExtension)) {
-				directory += secondExtension;
+	// If no extension is passed in the directory string, check the user's directory for files with that name to find the appropriate extension.
+	async addExtension(directory: string, extensions: string[]): Promise<string> {
+		let hasExtension = false;
+		for (const extension of extensions) {
+			if (directory.endsWith(extension)) {
+				hasExtension = true;
+				break;
+			}
+		}
+		
+		if (!hasExtension) {
+			for (const extension of extensions) {
+				if (fs.existsSync(directory + extension)) {
+					directory += extension;
+					break;
+				}
 			}
 		}
 		return directory;

@@ -3,9 +3,9 @@ import path from "path";
 import util from "./util";
 import { Config } from "../types";
 
-const currentDirectory = process.cwd();
+const currentDir = process.cwd();
 const luaFunctions = fs.readFileSync(path.join(__dirname, "../functions.lua"), "utf8");
-const configDir = path.join(currentDirectory, "/luacompact.json");
+const configDir = path.join(currentDir, "/luacompact.json");
 const excludeList = [
 	"luacompact.json",
 	".vscode",
@@ -15,16 +15,16 @@ const excludeList = [
 // Checks if the file directory is excluded in config
 async function checkExcludedFiles(fileDir: string, config: Config): Promise<boolean> {
 	if (!config.exclude) return false;
-	if (fileDir.startsWith(("build/")) || fileDir === config.main || (config.prelude && fileDir === config.prelude)) return true;
+	if (fileDir.startsWith((config.exportDirectory || "build/")) || fileDir === config.main || (config.prelude && fileDir === config.prelude)) return true;
 
-	const absoluteDir = path.join(currentDirectory, fileDir);
+	const absoluteDir = path.join(currentDir, fileDir);
 	for (const excludedItem of excludeList) {
 		if (absoluteDir.includes(excludedItem)) {
 			return true;
 		}
 	}
 
-	fileDir = await util.checkExtension(fileDir, ".lua", ".luau");
+	fileDir = await util.addExtension(fileDir, [".lua", ".luau"]);
 	const excludedFiles = config.exclude;
 	let excluded = false;
 	for (const excludedFile of excludedFiles) {
@@ -47,7 +47,7 @@ async function buildModules(files: string[], config: Config): Promise<string> {
 
 	let moduleBuild = "";
 	for (const luaFile of luaFiles) {
-		const relativePath = path.relative(currentDirectory, luaFile).replace(/\\/g, "/");
+		const relativePath = path.relative(currentDir, luaFile).replace(/\\/g, "/");
 		if (await checkExcludedFiles(relativePath, config)) continue; // Ignore excluded files.
 
 		const fileContents = fs.readFileSync(luaFile, "utf8");
@@ -68,7 +68,7 @@ async function buildImports(files: string[], config: Config): Promise<{ importBu
 	let importBuild = "";
 	for (const file of files) {
 		const extension = path.extname(file);
-		const relativePath = path.relative(currentDirectory, file).replace(/\\/g, "/");
+		const relativePath = path.relative(currentDir, file).replace(/\\/g, "/");
 		if (extension.endsWith("lua") || extension.endsWith("luau")) continue;
 		if (await checkExcludedFiles(relativePath, config)) continue;
 		
@@ -110,7 +110,7 @@ export async function build() {
 	const startTime: number = Date.now();
 	if (!fs.existsSync(configDir)) {
 		util.error("No LuaCompact project found. Please run \"luacompact init\" to create a new project.");
-		return;
+		process.exit();
 	}
 
 	const config: Config = JSON.parse(fs.readFileSync(configDir, "utf8"));
@@ -119,11 +119,11 @@ export async function build() {
 		return;
 	}
 
-	const buildDir = path.join(currentDirectory, (config.buildDirectory || "build"));
+	const buildDir = path.join(currentDir, (config.exportDirectory || "hello"));
 	const buildFileDir = path.join(buildDir, "/build.lua");
 
 	if (!fs.existsSync(buildDir)) fs.mkdirSync(buildDir); // Create 
-	const files = await util.retrieveFiles(currentDirectory);
+	const files = await util.retrieveFiles(currentDir);
 	const moduleBuild = await buildModules(files, config);
 	const { importBuild, failedBuilds } = await buildImports(files, config);
 
