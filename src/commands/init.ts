@@ -13,8 +13,8 @@ export default {
 	name: "init",
 	description: "Initializes a new LuaCompact project",
 	async run(): Promise<void> {
-		const currentDirectory = process.cwd();
-		const configDir = path.join(currentDirectory, "/luacompact.json");
+		const currentDir = process.cwd();
+		const configDir = path.join(currentDir, "/luacompact.json");
 
 		if (!fs.existsSync(configDir)) {
 			const entryDirInput = await util.prompt("Please enter the entry file name: ");
@@ -25,7 +25,7 @@ export default {
 			}
 
 			// Create the config file and the entry point file if it doesn't already exist.
-			const entryDir = path.join(currentDirectory, `/${defaultJSON.main}`);
+			const entryDir = path.join(currentDir, `/${defaultJSON.main}`);
 			fs.writeFileSync(configDir, JSON.stringify(defaultJSON, null, 4));
 			if (!fs.existsSync(entryDir)) {
 				fs.writeFileSync(entryDir, "print(\"Hello World!\")");

@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import util from "../modules/util";
 import { build } from "../modules/build";
+import { Config } from "../types";
 
 async function watchBuild(): Promise<void> {
 	await build();
@@ -16,11 +17,8 @@ export default {
 		if (!options.includes("--watch")) process.exit(); // If the user did not include a watch option, exit the process.
 		
 		const currentDir = process.cwd();
-		const configDir = path.join(currentDir, "/luacompact.json");
-		if (!fs.existsSync(configDir)) process.exit();
-		
-		const buildDir = path.join(currentDir, "/build");
-		const config = JSON.parse(fs.readFileSync(configDir, "utf8"));
+		const config: Config = JSON.parse(fs.readFileSync(path.join(currentDir, "/luacompact.json"), "utf8"));
+		const buildDir = path.join(currentDir, (config.exportDirectory || "/build"));
 		const excludeDirs: string[] = [];
 		if (config.exclude) {
 			for (const excludeDir of config.exclude) {
