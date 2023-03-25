@@ -26,7 +26,7 @@ yarn global add luacompact
 pnpm add luacompact -g
 ```
 
-After installation, you should be able to use  either by using `luacompact` or `lct` in terminal. 
+After installation, you should be able to use LuaCompact either by using the `luacompact` or `lct` commands in terminal. 
 
 ## Usage
 
@@ -59,7 +59,7 @@ The `load` function supports both .lua and .luau files.
 
 index.lua Example:
 ```lua
-local core = load("src/core.lua")
+local core = load("core.lua")
 core.helloWorld()
 ```
 
