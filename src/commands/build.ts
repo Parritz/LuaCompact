@@ -28,6 +28,7 @@ export default {
 		}
 
 		const files = await util.retrieveFiles(currentDir);
+		const directories = await util.retrieveDirectories(currentDir);
 		util.log("Watching for changes...");
 		for (const file of files) {
 			if (file.startsWith(buildDir)) continue; // Skip files in the build directory.
@@ -37,11 +38,10 @@ export default {
 			});
 		}
 
-		const directories = await util.retrieveDirectories(currentDir);
-		directories.push(currentDir);
-		for (const directory of directories) {
-			if (directory.startsWith(buildDir)) continue; // Skip files in the build directory.
-			fs.watchFile(directory, { interval: 500 }, async () => {
+		files.push(currentDir);
+		for (const file of files) {
+			if (file.startsWith(buildDir)) continue; // Skip files in the build directory.
+			fs.watchFile(file, { interval: 500 }, async () => {
 				const currentFiles = await util.retrieveFiles(currentDir);
 				for (const file of currentFiles) {
 					// Watch files that are added to the project.

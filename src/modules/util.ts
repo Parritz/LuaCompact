@@ -61,18 +61,20 @@ export default {
 
 	async retrieveFiles(directory: string, extensions?: string[]): Promise<string[]> {
 		const files: string[] = [];
-		const directories = await this.retrieveDirectories(directory);
-		for (const directory of directories) {
-			fs.readdirSync(directory).forEach(async (file) => {
-				const extension = path.extname(file);
-				const filePath = path.resolve(path.join(directory, file));
-				const isDirectory = fs.lstatSync(filePath).isDirectory();
-				if (!extensions && !isDirectory) files.push(filePath);
-				if (extensions && extensions.includes(extension)) {
-					files.push(filePath);
-				}
-			});
-		}
+		fs.readdirSync(directory).forEach(async (file) => {
+			const isDirectory = fs.lstatSync(path.join(directory, file)).isDirectory();
+			const extension = path.extname(file);
+			if (!extensions && !isDirectory) files.push(path.resolve(path.join(directory, file)));
+			if (extensions && extensions.includes(extension)) {
+				files.push(path.resolve(path.join(directory, file)));
+			}
+	
+			// Walk through subdirectories and add any files matching the wanted extensions to the list.
+			if (isDirectory) {
+				const filesInDir = await this.retrieveFiles(path.join(directory, file), extensions);
+				files.push(...filesInDir);
+			}
+		});
 		return files;
 	},
 
