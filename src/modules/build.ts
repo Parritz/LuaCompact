@@ -24,7 +24,7 @@ async function checkExcludedFiles(fileDir: string, config: Config): Promise<bool
 		}
 	}
 
-	fileDir = await util.addExtension(fileDir, [".lua", ".luau"]);
+	fileDir = await util.addMissingExtension(fileDir, [".lua", ".luau"]);
 	const excludedFiles = config.exclude;
 	let excluded = false;
 	for (const excludedFile of excludedFiles) {
@@ -50,8 +50,8 @@ async function buildModules(files: string[], config: Config): Promise<string> {
 		const relativePath = path.relative(currentDir, luaFile).replace(/\\/g, "/");
 		if (await checkExcludedFiles(relativePath, config)) continue; // Ignore excluded files.
 
-		const fileContents = fs.readFileSync(luaFile, "utf8");
 		let formattedContents = "";
+		const fileContents = fs.readFileSync(luaFile, "utf8");
 		for (let line of fileContents.split("\n")) {
 			if (line.length != 1) line = `\t${line}`;
 			formattedContents += line;
@@ -73,30 +73,31 @@ async function buildImports(files: string[], config: Config): Promise<{ importBu
 		if (await checkExcludedFiles(relativePath, config)) continue;
 		
 		const fileContents = fs.readFileSync(file, "utf8");
-		if (extension.endsWith(".json")) {
-			try {
-				const parsedJSON = JSON.parse(fileContents);
-				importBuild += `luacompactImports["${relativePath}"] = function()\n\tlocal object = {}\n`;
-				for (const key of Object.keys(parsedJSON)) {
-					const value = parsedJSON[key];
-					if (typeof(value) === "string") {
-						importBuild += `\tobject["${key}"] = "${value}"\n`;
-					} else {
-						importBuild += `\tobject["${key}"] = ${value}\n`;
-					}
-					
-					if (Object.keys(parsedJSON)[Object.keys(parsedJSON).length - 1] === key) {
-						importBuild += "\treturn object\nend\n\n";
-					}
-				}
-			} catch {
-				util.error(`Failed to parse JSON file: ${relativePath}.\nThis file will not be included in the final build.`);
-				failedBuilds.push(relativePath);
-				continue;
-			}
-		} else {
+		if (!extension.endsWith(".json")) {
 			const byteEncodedContents: string = util.stringToByteArray(fileContents).join("\\");
 			importBuild += `luacompactImports["${relativePath}"] = function()\n\treturn "\\${byteEncodedContents}"\nend\n`;
+			continue;
+		}
+		
+		try {
+			const parsedJSON = JSON.parse(fileContents);
+			importBuild += `luacompactImports["${relativePath}"] = function()\n\tlocal object = {}\n`;
+			for (const key of Object.keys(parsedJSON)) {
+				const value = parsedJSON[key];
+				if (typeof(value) === "string") {
+					importBuild += `\tobject["${key}"] = "${value}"\n`;
+				} else {
+					importBuild += `\tobject["${key}"] = ${value}\n`;
+				}
+				
+				if (Object.keys(parsedJSON)[Object.keys(parsedJSON).length - 1] === key) {
+					importBuild += "\treturn object\nend\n\n";
+				}
+			}
+		} catch {
+			util.error(`Failed to parse JSON file: ${relativePath}.\nThis file will not be included in the final build.`);
+			failedBuilds.push(relativePath);
+			continue;
 		}
 	}
 	
@@ -122,7 +123,7 @@ export async function build() {
 	const buildDir = path.join(currentDir, (config.exportDirectory || "hello"));
 	const buildFileDir = path.join(buildDir, "/build.lua");
 
-	if (!fs.existsSync(buildDir)) fs.mkdirSync(buildDir); // Create 
+	if (!fs.existsSync(buildDir)) fs.mkdirSync(buildDir);
 	const files = await util.retrieveFiles(currentDir);
 	const moduleBuild = await buildModules(files, config);
 	const { importBuild, failedBuilds } = await buildImports(files, config);
