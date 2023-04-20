@@ -26,7 +26,7 @@ yarn global add luacompact
 pnpm add luacompact -g
 ```
 
-After installation, you should be able to use LuaCompact either by using the `luacompact` or `lct` commands in terminal. 
+After installation, you should be able to use LuaCompact either by using the `luacompact` or `lcp` commands in terminal. 
 
 ## Usage
 
@@ -102,8 +102,9 @@ Below, you can see the options and what each option is used for.
 | Key | Description | Input | Type | Required |
 | --- | --- | --- | --- | --- |
 | main | The program entry point. | A directory to a lua file. | string | true |
-| prelude | Code that runs after imports are defined but before modules are defined. | A directory to a lua file. | string | false |
+| prelude | Code that runs after imports are defined but before modules are defined. | A directory to a lua file. | string or string[] | false |
 | exclude | Files that aren't included in the final output. | A list of directories. | string[] | false |
+| exportDirectory | The place to export the final output. | A directory. | string | "build" |
 
 ## Contributing
 
