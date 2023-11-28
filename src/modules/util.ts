@@ -1,22 +1,22 @@
 import fs from "fs";
 import path from "path";
 import chalk from "chalk";
+import { stdin, stdout } from "process";
 
-const { stdin, stdout } = process;
 export default {
-	success(message: string): void {
+	success(message: string) {
 		console.log(chalk.green("[SUCCESS]: ") + message);
 	},
 
-	log(message: string): void {
+	log(message: string) {
 		console.log(chalk.blue("[INFO]: ") + message);
 	},
 
-	warn(message: string): void {
+	warn(message: string) {
 		console.log(chalk.yellow("[WARNING]: ") + message);
 	},
 
-	error(message: string): void {
+	error(message: string) {
 		console.log(chalk.red("[ERROR]: ") + message);
 	},
 
@@ -25,6 +25,7 @@ export default {
 		for (let i = 0; i < String.length; i++){
 			result[i] = String.charCodeAt(i);
 		}
+
 		return result;
 	},
 
@@ -35,11 +36,11 @@ export default {
 
 			stdin.on("data", data => resolve(data.toString().trim()));
 			stdin.on("error", err => reject(err));
-		}) as unknown as string;
+		});
 	},
 
 	// If no extension is passed in the directory string, check the user's directory for files with that name to find the appropriate extension.
-	async addMissingExtension(directory: string, extensions: string[]): Promise<string> {
+	addMissingExtension(directory: string, extensions: string[]): string {
 		let hasExtension = false;
 		for (const extension of extensions) {
 			if (directory.endsWith(extension)) {
@@ -56,10 +57,11 @@ export default {
 				}
 			}
 		}
+
 		return directory;
 	},
 
-	async retrieveFiles(directory: string, extensions?: string[]): Promise<string[]> {
+	retrieveFiles(directory: string, extensions?: string[]) {
 		const files: string[] = [];
 		fs.readdirSync(directory).forEach(async (file) => {
 			const isDirectory = fs.lstatSync(path.join(directory, file)).isDirectory();
@@ -71,14 +73,15 @@ export default {
 	
 			// Walk through subdirectories and add any files matching the wanted extensions to the list.
 			if (isDirectory) {
-				const filesInDir = await this.retrieveFiles(path.join(directory, file), extensions);
+				const filesInDir = this.retrieveFiles(path.join(directory, file), extensions);
 				files.push(...filesInDir);
 			}
 		});
+		
 		return files;
 	},
 
-	async retrieveDirectories(directory: string): Promise<string[]> {
+	retrieveDirectories(directory: string) {
 		const directories: string[] = [];
 		fs.readdirSync(directory).forEach(async (file) => {
 			const isDirectory = fs.lstatSync(path.join(directory, file)).isDirectory();
@@ -86,10 +89,11 @@ export default {
 	
 			// Walk through subdirectories and add any directories found.
 			if (fs.lstatSync(path.join(directory, file)).isDirectory()) {
-				const dirs = await this.retrieveDirectories(path.join(directory, file));
+				const dirs = this.retrieveDirectories(path.join(directory, file));
 				directories.push(...dirs);
 			}
 		});
+
 		return directories;
 	}
 };

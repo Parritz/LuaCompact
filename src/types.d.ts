@@ -6,7 +6,7 @@ export type Command = {
 
 export type Config = {
 	main: string;
-	prelude?: string;
+	prelude?: string | string[];
 	exclude?: string[];
 	exportDirectory?: string;
 }

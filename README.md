@@ -1,9 +1,6 @@
 <div align="center">
 	<img src="images/luacompact_banner.png" width="512"></img>
     <br>
-	<a href="https://github.com/Parritz/LuaCompact/actions/workflows/publish.yml">
-        <img src="https://github.com/Parritz/LuaCompact/actions/workflows/publish.yml/badge.svg" alt="GitHub Actions Release Status">
-    </a>
 	<a href="https://github.com/Parritz/LuaCompact/releases/latest"><img src="https://img.shields.io/github/v/release/Parritz/LuaCompact?include_prereleases" alt="Latest Release" /></a>
 	<br>
     A Lua bundler written in Typescript that combines multiple Lua files into one, making managing large-scale projects a breeze.
@@ -41,14 +38,14 @@ luacompact init
 
 ### Building a project
 To build a project, all you need to do is run the command below.<br>
-Optionally, you can also include a --watch parameter to the command to automatically have LuaCompact build the project once a file is changed.
+Optionally, you can also include a -watch or -w parameter to the command to automatically have LuaCompact build the project once a file is changed.
 
 ```bash
-# Building without --watch
+# Building without -watch
 luacompact build
 
-# Building with --watch
-luacompact build --watch
+# Building with -watch
+luacompact build -watch
 ```
 
 ### Loading modules/scripts

@@ -1,13 +1,12 @@
 #! /usr/bin/env node
 import fs from "fs";
 import path from "path";
-import util from "./modules/util";
-import { Command } from "./types";
+import util from "./modules/util.js";
+import { Command } from "./types.js";
 
 const commands: { [cmdName: string]: Command } = {};
 const commandFolder: string = path.join(__dirname, "/commands");
 fs.readdirSync(commandFolder).forEach((file) => {
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	const command: Command = require(path.join(commandFolder, file)).default;
 	commands[command.name] = command;
 });
@@ -19,7 +18,7 @@ const flags: string[] = [];
 while (args.length > 0) {
 	const arg = args.shift();
 	if (!arg) continue;
-	if (arg.startsWith("--")) {
+	if (arg.startsWith("-")) {
 		flags.push(arg);
 	} else {
 		args.unshift(arg);
