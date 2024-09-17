@@ -11,7 +11,7 @@ Before setting up the project, ensure you have pnpm installed.
 To get the codebase setup, you will want to do the following.
 
 1. Fork & clone the repository.
-2. Run `pnpm install`
-3. Run `pnpm run build` (Note: You can use `pnpm run watch` to automatically build after a file is edited.)
+2. Run `npm install`
+3. Run `npm run build` (Note: You can use `npm run watch` to automatically build after a file is edited.)
 4. Make your changes.
 5. Submit your pull request.

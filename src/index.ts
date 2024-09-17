@@ -27,8 +27,12 @@ while (args.length > 0) {
 }
 
 if (commandProvided && commands[commandProvided]) {
-	commands[commandProvided].run(flags);
+	(async () => {
+		await commands[commandProvided].run(flags);
+		if (!flags.includes("-w") && !flags.includes("-watch")) {
+			process.exit();
+		}
+	})();
 } else {
 	util.error("Invalid command provided.");
-	process.exit();
 }

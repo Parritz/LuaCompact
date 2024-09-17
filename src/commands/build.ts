@@ -1,11 +1,11 @@
 import fs from "fs";
 import path from "path";
 import util from "../modules/util.js";
-import { build } from "../modules/bundler.js";
+import { buildProject } from "../modules/bundler.js";
 import { Config } from "../types.js";
 
 function watchBuild() {
-	build();
+	buildProject();
 	util.log("Watching for changes...");
 }
 
@@ -13,10 +13,11 @@ export default {
 	name: "build",
 	description: "Builds a LuaCompact project.",
 	async run(options: string[]) {
-		build();
+		buildProject();
 		if (!options.includes("-watch") && !options.includes("-w")) process.exit(); // If the user did not include a watch option, exit the process.
 		
 		const currentDir = process.cwd();
+		const files = util.retrieveFiles(currentDir);
 		const config: Config = JSON.parse(fs.readFileSync(path.join(currentDir, "/luacompact.json"), "utf8"));
 		const buildDir = path.join(currentDir, (config.exportDirectory || "/build"));
 		const excludeDirs: string[] = [];
@@ -26,9 +27,6 @@ export default {
 				excludeDirs.push(absoluteExcludeDir);
 			}
 		}
-
-		const files = util.retrieveFiles(currentDir);
-		// const directories = util.retrieveDirectories(currentDir); (to be removed?)
 
 		util.log("Watching for changes...");
 		for (const file of files) {

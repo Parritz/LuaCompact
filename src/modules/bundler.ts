@@ -13,12 +13,16 @@ const excludeList = [
 	".git"
 ];
 
-let config: Config = JSON.parse(fs.readFileSync(configDir, "utf8"));
+function getConfig(): Config | undefined {
+	if (fs.existsSync(configDir)) {
+		return JSON.parse(fs.readFileSync(configDir, "utf8"));
+	}
+}
 
 // Checks if the file directory is excluded in config
 function isExcluded(fileDir: string, config: Config) {
 	if (!config.exclude) return false;
-	if (fileDir.startsWith((config.exportDirectory || "build/")) || fileDir === config.main || (config.prelude && fileDir === config.prelude)) return true;
+	if (fileDir.startsWith((config.exportDirectory || "build/")) || fileDir === config.main || (fileDir === config.prelude || config.prelude?.includes(fileDir))) return true;
 
 	const absoluteDir = path.join(currentDir, fileDir);
 	for (const excludedItem of excludeList) {
@@ -106,25 +110,35 @@ function buildImports(files: string[], config: Config) {
 	return importBuild;
 }
 
-function addPrelude(preludeBuild: string, preludeFile: string) {
+function addPrelude(preludeFile: string) {
+	const config = getConfig();
+	if (!config) {
+		util.error("No config file found. Please run \"luacompact init\" to create a new project.");
+		return;
+	}
+
 	if (!fs.existsSync(preludeFile)) {
 		util.error(`Unable to find prelude file: ${config.prelude}.\nThis file will not be included in the final build.`);
 		failedBuilds.push(preludeFile);
 		return;
 	}
 
-	const preludeContent = fs.readFileSync(preludeFile, "utf8");
-	preludeBuild += `${preludeContent}\n`;
+	return fs.readFileSync(preludeFile, "utf8") + "\n";
 }
 
-export function build() {
+export function buildProject() {
 	const startTime: number = Date.now();
 	if (!fs.existsSync(configDir)) {
 		util.error("No LuaCompact project found. Please run \"luacompact init\" to create a new project.");
 		return;
 	}
 
-	config = JSON.parse(fs.readFileSync(configDir, "utf8"));
+	const config = getConfig();
+	if (!config) {
+		util.error("No config file found. Please run \"luacompact init\" to create a new project.");
+		return;
+	}
+
 	if (!config.main || !fs.existsSync(config.main)) {
 		util.error("No entry file found. Please run \"luacompact init\" to create a new project.");
 		return;
@@ -141,12 +155,10 @@ export function build() {
 	let preludeBuild = "";
 	if (config.prelude instanceof Array) {
 		for (const preludeFile of config.prelude) {
-			addPrelude(preludeBuild, preludeFile);
+			preludeBuild += addPrelude(preludeFile);
 		}
-	} else {
-		if (config.prelude) {
-			addPrelude(preludeBuild, config.prelude);
-		}
+	} else if (config.prelude) {
+		addPrelude(config.prelude);
 	}
 
 	let finalBuild = `${luaFunctions}\n\n`;
