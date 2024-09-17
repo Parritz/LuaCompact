@@ -1,10 +1,10 @@
 {
 	"compilerOptions": {
 		/* Language and Environment */
-		"target": "ES2017",
+		"target": "ESNext",
 
 		/* Modules */
-		"module": "commonjs",
+		"module": "NodeNext",
 		"rootDir": "src",
 		"outDir": "dist",
 		"esModuleInterop": true,

@@ -1,9 +1,6 @@
 <div align="center">
-	<img src="images/LuaCompactBanner.png" width="512"></img>
+	<img src="images/luacompact_banner.png" width="512"></img>
     <br>
-	<a href="https://github.com/Parritz/LuaCompact/actions/workflows/publish.yml">
-        <img src="https://github.com/Parritz/LuaCompact/actions/workflows/publish.yml/badge.svg" alt="GitHub Actions Release Status">
-    </a>
 	<a href="https://github.com/Parritz/LuaCompact/releases/latest"><img src="https://img.shields.io/github/v/release/Parritz/LuaCompact?include_prereleases" alt="Latest Release" /></a>
 	<br>
     A Lua bundler written in Typescript that combines multiple Lua files into one, making managing large-scale projects a breeze.
@@ -26,7 +23,7 @@ yarn global add luacompact
 pnpm add luacompact -g
 ```
 
-After installation, you should be able to use  either by using `luacompact` or `lct` in terminal. 
+After installation, you should be able to use LuaCompact either by using the `luacompact` or `lcp` commands in terminal. 
 
 ## Usage
 
@@ -41,14 +38,14 @@ luacompact init
 
 ### Building a project
 To build a project, all you need to do is run the command below.<br>
-Optionally, you can also include a --watch parameter to the command to automatically have LuaCompact build the project once a file is changed.
+Optionally, you can also include a -watch or -w parameter to the command to automatically have LuaCompact build the project once a file is changed.
 
 ```bash
-# Building without --watch
+# Building without -watch
 luacompact build
 
-# Building with --watch
-luacompact build --watch
+# Building with -watch
+luacompact build -watch
 ```
 
 ### Loading modules/scripts
@@ -59,7 +56,7 @@ The `load` function supports both .lua and .luau files.
 
 index.lua Example:
 ```lua
-local core = load("src/core.lua")
+local core = load("core.lua")
 core.helloWorld()
 ```
 
@@ -102,8 +99,9 @@ Below, you can see the options and what each option is used for.
 | Key | Description | Input | Type | Required |
 | --- | --- | --- | --- | --- |
 | main | The program entry point. | A directory to a lua file. | string | true |
-| prelude | Code that runs after imports are defined but before modules are defined. | A directory to a lua file. | string | false |
+| prelude | Code that runs after imports are defined but before modules are defined. | A directory to a lua file. | string or string[] | false |
 | exclude | Files that aren't included in the final output. | A list of directories. | string[] | false |
+| exportDirectory | The place to export the final output. | A directory. | string | "build" |
 
 ## Contributing
 

@@ -4,12 +4,9 @@ export type Command = {
 	run(options: string[]): Promise<void> | void;
 }
 
-export type Commands = {
-	[cmdName: string]: Command;
-}
-
 export type Config = {
 	main: string;
-	prelude?: string;
+	prelude?: string | string[];
 	exclude?: string[];
+	exportDirectory?: string;
 }
