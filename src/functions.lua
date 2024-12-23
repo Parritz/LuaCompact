@@ -14,10 +14,24 @@ function resolvePath(dir, luacompactTable)
 	return dir
 end
 
+function getFileType(filePath,file)
+    if not filePath or not file then
+        return
+    end
+
+    local currentFileExtension = filePath:match("^.+%.([^.]+)$")
+
+    if currentFileExtension == "luau" then
+        return typeof(file)
+    end
+
+    return type(file)
+end
+
 function load(dir)
 	local path = resolvePath(dir, luacompactModules)
 	local loadedScript = luacompactModules[path]
-	if typeof(loadedScript) == "function" then
+	if getFileType(path,loadedScript) == "function" then
 		return loadedScript()
 	end
 	return "Invalid script path."
@@ -26,7 +40,7 @@ end
 function import(dir)
 	local path = resolvePath(dir, luacompactImports)
 	local importedFile = luacompactImports[path]
-	if typeof(importedFile) == "function" then
+	if getFileType(path,importedFile) == "function" then
 		return importedFile()
 	end
 	return "Invalid file path."
