@@ -1,7 +1,7 @@
 {
 	"name": "luacompact",
 	"description": "Luacompact is a Lua bundler written in Typescript that combines multiple Lua files into one.",
-	"version": "1.4.0",
+	"version": "1.4.2",
 	"author": "Parritz",
 	"license": "MIT",
 	"main": "dist/index.js",
